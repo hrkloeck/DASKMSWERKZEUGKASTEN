@@ -32,11 +32,11 @@ def main():
                       help='MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms')
 
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
-                      help='Points to a working directory (e.g. usefull for containers)')
+                      help='Points to the working directory (e.g. usefull for containers)')
 
 
     parser.add_option('--DOINFO_TAB', dest='getinfotab', default='',type=str,
-                      help='Show table info [default ALL tables, else use table name]')
+                      help='Show table info only [default ALL tables, else use table name]')
 
 
     parser.add_option('--DO_MS_INFO_JSON', dest='dodatainfoutput',default='',type=str,
