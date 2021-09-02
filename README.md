@@ -28,8 +28,27 @@ Maybe the easiest is to do a container based on the ['stimela project'](https://
 
 get singularity installed on your machine
 
-singularity pull docker://stimela/ragavi:1.7.3
+.. code-block:: bash
+
+	$ singularity pull docker://stimela/ragavi:1.7.3
 
 this includes all you need to get running.
 
+
+Example how to run the singularity image
+=============
+
+.. code-block:: bash
+	singularity exec --bind "$PWD":/work
+	/PATH_TO_SINGULARITY_CONTAINER/ragavi_1.2.6.sif python3
+	/work/DASKMS_PLAYGROUND.py --HELP
+
+
+
+DASK Documentation
+=============
+
+https://dask-ms.readthedocs.io
+
+https://gitter.im/dask-ms/community
 
