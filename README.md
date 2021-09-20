@@ -42,6 +42,7 @@ $ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif
 
 list of arguments
 
+```
 Options:
   -h, --help            show this help message and exit
   --MS_FILE=MSFILE      MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms
@@ -54,6 +55,7 @@ Options:
                         Output file name. Information stored in JSON format.
   --NOT_PRINT_MS_INFO   Stop printing MS info. Useful in pipelines
 
+```
 
 Lets assume your ragavi container sits in /SOFTWARE/CONTAINER and your
 MS file is in the current working directory
