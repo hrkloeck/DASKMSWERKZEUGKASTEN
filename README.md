@@ -4,7 +4,7 @@
 
 The purpose of this Werkzeugkasten (toolbox) is to extract information and access raw
 data of a
-['Measurement Set'](https://casa.nrao.edu/casadocs/casa-5.1.1/reference-material/measurement-set),
+['Measurement Set'](https://casa.nrao.edu/Memos/229.html),
 having in mind an astronomers perspective who wants to play with the
 data. Hope you will enjoy it.
 
