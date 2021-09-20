@@ -103,9 +103,9 @@ def main():
         # get general information
         msinfo = INFMS.ms_obs_info(MSFN)
 
-        array_type = 'HOMOGENIOUS'
+        array_type = 'HOMOGENEOUS'
         if len(np.unique(msinfo['DISH_DIAMETER'])) > 1:
-            array_type = 'INHOMOGENIOUS'
+            array_type = 'INHOMOGENEOUS'
 
         number_of_antennas = len(msinfo['ANTS'])
 
@@ -204,7 +204,7 @@ def main():
         # ---- 
 
 
-        if array_type == 'HOMOGENIOUS':
+        if array_type == 'HOMOGENEOUS':
 
             SEFD      = INFMS.SEFD(np.unique(msinfo['DISH_DIAMETER']),T_sys,eta_a)
 
