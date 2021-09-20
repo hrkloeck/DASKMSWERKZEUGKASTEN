@@ -73,7 +73,7 @@ observation timerange (UTC) :   2020-06-14 05:51:27.925  ---  2020-06-14 06:09:5
 number of individual scans  :   1                                                                                                          
 number of antennas          :   59                                                                                                         
 antenna diameter        [m] :   [13.5]
-array type                  :   HOMOGENIOUS
+array type                  :   HOMOGENEOUS
 field of view  (FoV)  [deg] :   [ 1.46 , 1.58 ]
 baseline length         [m] :   [ 29.26 , 7697.58 ]
 angular resolution [arcsec] :   [ 7.69 , 8.35 ]
