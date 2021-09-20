@@ -2,43 +2,42 @@
 
 ---
 
-The purpose of this toolbox is to provide information from radio
-observations and access the raw data from an astronomers perspective
-playing with the data. Hope you will enjoy it.
+The purpose of this Werkzeugkasten (toolbox) is to extract information and access raw
+data of a
+['Measurement Set'](https://casa.nrao.edu/casadocs/casa-5.1.1/reference-material/measurement-set),
+having in mind an astronomers perspective who wants to play with the
+data. Hope you will enjoy it.
 
+Of course there are many other solutions on the market to do that, but
+I was looking for a general tool that allows to access, but also to edit
+the MS datasets in a more coherent framework and I found the nice
+stuff from Simon Perkins
+['MS-DASK'](https://github.com/ska-sa/dask-ms).
 
-There are various ways to extract information from a ['Measurement
-Set'](https://casa.nrao.edu/casadocs/casa-5.1.1/reference-material/measurement-set)
-using CASA, casacore, etc and the varaity adds an additional threshold if
-one just want to figure some things out.
-
-
-I was looking for a general tool that allows to acces but also to edit
-the MS datasets in a more coherent framework, so I'm using
-['MS-DASK'](https://github.com/ska-sa/dask-ms) and will add to all the
-confusing software packages availibe on the market and put together
-the DASKMS Werkzeugkasten.
 
 ## Installation 
-The only thing to use it you may want to get ['MS-DASK'](https://github.com/ska-sa/dask-ms)
-installed. 
 
+Maybe the easiest way to get going is to run a container based
+installation from the
+['stimela project'](https://github.com/ratt-ru/Stimela) from Sphe
+Makhathini. Of course you need to get
+['singularity'](https://sylabs.io/docs/#singularity) or
+['docker '](https://docs.docker.com/get-docker/) installed
+first on your machine.
 
-Maybe the easiest is to do a container based on the ['stimela project'](https://github.com/ratt-ru/Stimela)
-
-get singularity installed on your machine
+After that build an image, here e.g. we build a singularity image:
 
 ```
 $ singularity pull docker://stimela/ragavi:1.7.3
 ```
-this includes all you need to get running.
 
 
-Obtain Information of your Measurementset 
+
+Obtain Information of your Observations 
 =============
 
 ```
-$ singularity exec --bind "$PWD":/work /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/GET_MS_INFO.py --h
+$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 GET_MS_INFO.py --h
 ```
 
 list of arguments
@@ -52,16 +51,18 @@ Options:
                         Show MS table info only [default ALL tables, else use table
                         name]
   --DO_MS_INFO_JSON=DODATAINFOUTPUT
-                        Output file name in JSON format.
+                        Output file name. Information stored in JSON format.
   --NOT_PRINT_MS_INFO   Stop printing MS info. Useful in pipelines
 
 
 Lets assume your ragavi container sits in /SOFTWARE/CONTAINER and your
 MS file is in the current working directory
 
-singularity exec --bind "$PWD":/work /SOFTWARE/CONTAINERS/ragavi_1.2.6.sif python3 /work/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=J2339-5523_multispw_small.ms
+```
+$ singularity exec --bind "$PWD":/work /SOFTWARE/CONTAINERS/ragavi_1.2.6.sif python3 /work/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=J2339-5523_multispw_small.ms
+```
 
-
+Example output:
 
 ```
 telescope                   :   MeerKAT                                                                                                    
@@ -120,6 +121,17 @@ detailed source information
 ```
 
 
+More to come 
+=============
+- Perecentage of flagging
+- Baseline waterfall spectra
+
+
+As a Note
+=============
+
+If you want to plot very efficient the visibilities please do not use
+this tool use instead Olegs ['shadeMS'](https://github.com/ratt-ru/shadeMS).
 
 
 DASK Documentation
