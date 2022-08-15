@@ -561,8 +561,9 @@ def beams(ant_dia,obs_freq,type='FoV'):
     from math import pi
 
     if type == 'FoV':
-        # primary beam first null  = 1.22
-        return((1.22 * (const.c/obs_freq)/np.array(ant_dia)  * 180./pi).value)
+        # position of first null is 1.22 
+        # the fov of the primary bean is twice this value
+        return((2 * 1.22 * (const.c/obs_freq)/np.array(ant_dia)  * 180./pi).value)
     else:
         # half power beam width = 1.02
         return((1.02 *  (const.c/obs_freq)/np.array(ant_dia) * 180./pi).value)
