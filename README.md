@@ -123,11 +123,6 @@ detailed source information
 ```
 
 
-More to come 
-=============
-- Perecentage of flagging
-- Baseline waterfall spectra
-
 
 As a Note
 =============
