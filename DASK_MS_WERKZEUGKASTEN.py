@@ -196,18 +196,59 @@ def ms_obs_info(msdata):
     obs_info['ANTS'] = list(ms_unique_antenna(msdata))  
 
     ob_infoa = xds_from_table(msdata+'::ANTENNA')
-    obs_info['DISH_DIAMETER'] = list(ob_infoa[0].DISH_DIAMETER.values)  
 
+    obs_info['DISH_DIAMETER'] = list(ob_infoa[0].DISH_DIAMETER.values)  
 
     return obs_info
 
 
-def ms_unique_antenna(msdata):
+def get_array_center(msdata):
     """
+    determine array center as 3-dim point
     """
-    ob_infof = xds_from_table(msdata+'::FEED')
 
-    return(np.unique(list(ob_infof[0].ANTENNA_ID.values)))
+    import numpy as np
+
+
+    ant_pos           = list(xds_from_table(msdata+'::'+'ANTENNA')[0].POSITION.values)
+    ant_pos_transpose = np.transpose(ant_pos)
+    array_centre      = [np.mean(ant_pos_transpose[0]),np.mean(ant_pos_transpose[1]),np.mean(ant_pos_transpose[2])]
+
+    return array_centre
+
+def order_antenna_wrst_A_center(msdata):
+    """
+    provide antenna name and idex sorted by distance
+    to the array center
+    """
+
+    ant_idx       = ms_unique_antenna(msdata,tabs='FEED')
+    ant_name      = ms_unique_antenna(msdata,tabs='ANTENNA')
+    ant_pos       = list(xds_from_table(msdata+'::'+'ANTENNA')[0].POSITION.values)
+
+    array_centre  = get_array_center(msdata)
+
+    dist       = []
+    dist_a_idx = []
+    for i in range(len(ant_pos)):
+        dist.append(np.linalg.norm(ant_pos[i][0]-array_centre))
+        dist_a_idx.append(ant_idx[i])
+
+    sort_idx = np.argsort(dist)
+
+    return np.array(dist)[sort_idx], np.array(dist_a_idx)[sort_idx],np.array(ant_name)[sort_idx]
+
+
+def ms_unique_antenna(msdata,tabs='FEED'):
+    """
+    """
+    ob_info = xds_from_table(msdata+'::'+tabs)
+
+    if tabs == 'FEED':
+        ants   = list(np.unique(ob_info[0].ANTENNA_ID.values)) 
+    elif tabs == 'ANTENNA':
+        ants   = list(np.unique(ob_info[0].NAME.values))
+    return(ants)
 
 
 def ms_baselines(msdata,tabs='FEED'):
@@ -222,6 +263,8 @@ def ms_baselines(msdata,tabs='FEED'):
         ants   = list(np.unique(ob_info[0].ANTENNA_ID.values)) 
     elif tabs == 'ANTENNA':
         ants   = list(np.unique(ob_info[0].NAME.values))
+        print(ants)
+        sys.exit(-1)
     else:
         ants = []
 
@@ -632,7 +675,7 @@ def baseline_sensitivity(SEFD1,SEFD2,bw,t_int,eta_s=1):
     return(rms_bsl)
 
 
-def image_sensitivity_inhomogenious_array(SEFD1,SEFD2,t_int,bw,n_pol,eta_s=1):
+def image_sensitivity_inhomogenious_array(N_MK,SEFD_MK,N_MKplus,SEFD_SKA,t_int,bw,n_pol,array_eff_mkplus=1):
     """
     Based on Wrobel & Walker 1999 Synthesis Imaging -- page 
 
@@ -644,23 +687,24 @@ def image_sensitivity_inhomogenious_array(SEFD1,SEFD2,t_int,bw,n_pol,eta_s=1):
     n_pol      = number of polarisation (XX YY or RR LL --> maximum 2)
     eta_s      = overall system efficiency (electronic and digital losses)
 
-    the error is calculated based on the baseline sensitivities
     """
     import numpy as np
     from math import sqrt
 
-    # Getting the individual combinations
-    baselines      = [ [i,j] for i in range(len(SEFD1)) for j in range(len(SEFD2)) if i<j ]
 
-    SEFD_FULL   = 0
-    for bl in baselines:
-        # sum over the individual errors
-        # (delta x)**2 = sum_1_N (delta_xi / N)**2
-        SEFD_FULL += ( baseline_sensitivity(SEFD1[bl[0]],SEFD2[bl[1]],bw,t_int) / len(baselines) )**2
+    # get the number of baselines
+    #
+    N_tot           =  N_MK + N_MKplus
+    N_bsl_tot       =  N_tot * (N_tot -1) / 2                   # total number of baselines
+    N_bsl_MK        =  N_MK * (N_MK -1) / 2                     # pure MK Antenna baselines
+    N_bsl_MKplus    =  N_MKplus * (N_MKplus -1) / 2             # pure SKAMID antenna baselines
+    N_bsl_MK_MKplus =  N_bsl_tot -  N_bsl_MK - N_bsl_MKplus     # intermixed baselines
+    # ############################
 
-    delta_array = 1/eta_s * sqrt(SEFD_FULL) / sqrt(n_pol)
+    image_sensitivity_MKplus =  1/array_eff_mkplus * sqrt( 1 / (n_pol * N_tot * (N_tot - 1) * delta_nu * t_obs) * (SEFD_MK**2 * N_bsl_MK + SEFD_SKA**2 * N_bsl_MKplus + SEFD_SKA * SEFD_MK * N_bsl_MK_MKplus) / N_bsl_tot )
+    #print('MeerKATplus image sensitivity: ',image_sensitivity_MKplus,'[Jy]')
 
-    return(delta_array)
+    return(image_sensitivity_MKplus)
 
 def obs_band(obsfreq):
     """

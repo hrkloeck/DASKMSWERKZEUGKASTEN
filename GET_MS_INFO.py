@@ -227,6 +227,11 @@ def main():
             print('Can not determine image sensitivities please add telescope information')
             image_sens_jy = -1
 
+        # Determine the array center and the antenna sorted by distance
+        
+        antinfo_pos = INFMS.order_antenna_wrst_A_center(MSFN)
+
+
 
         MS_FULL_INFO = {}
         MS_FULL_INFO.update({'TELESCOPE_NAME':msinfo['TELESCOPE_NAME']})
@@ -273,51 +278,53 @@ def main():
 
         MS_FULL_INFO.update({'BSL_SENSITIVITY_jy':bsl_sens_jy.flatten().tolist()})
 
+        MS_FULL_INFO.update({'antennas close to array center ':antinfo_pos[2].flatten().tolist()})
 
         if doprtdatainfo:
         
             print('\n')
-            print('telescope                   :  ',msinfo['TELESCOPE_NAME'])        
-            print('project ID                  :  ',msinfo['PROJECT'])
+            print('telescope                      :  ',msinfo['TELESCOPE_NAME'])        
+            print('project ID                     :  ',msinfo['PROJECT'])
 
-            print('observation timerange (UTC) :  ', Time(np.amin(np.array(time_range))/(24. * 3600.),scale='utc',format='mjd').iso,\
+            print('observation timerange (UTC)    :  ', Time(np.amin(np.array(time_range))/(24. * 3600.),scale='utc',format='mjd').iso,\
                       ' --- ',Time(np.amax(np.array(time_range))/(24. * 3600.),scale='utc',format='mjd').iso)
 
-            print('number of individual scans  :  ',noscans)
+            print('number of individual scans     :  ',noscans)
 
-            print('number of antennas          :  ',len(msinfo['ANTS']))
-            print('antenna diameter        [m] :  ',np.unique(msinfo['DISH_DIAMETER']))
-            print('array type                  :  ',array_type)
-            print('field of view  (FoV)  [deg] :   [',np.round(min(FOV_calc),2),',',np.round(max(FOV_calc),2),']')
-            print('baseline length         [m] :   [',np.round(min(bsl_length),2),',',np.round(max(bsl_length),2),']')  
-            print('angular resolution [arcsec] :   [',np.round(min(ang_res_calc)*3600,2),',',np.round(max(ang_res_calc)*3600,2),']')
-            print('imagesize           [pixel] :  ',np.round(image_size,2))
-            print('cellsize     [arcsec/pixel] :  ',np.round(cell_size*3600,6))
-            print('polarisation property       :  ',mspol_info['STOKES'])
-            print('spectral windows     [SPWD] :  ',len(msfreq_key))
+            print('number of antennas             :  ',len(msinfo['ANTS']))
+            print('antenna diameter        [m]    :  ',np.unique(msinfo['DISH_DIAMETER']))
+            print('array type                     :  ',array_type)
+            print('field of view  (FoV)  [deg]    :   [',np.round(min(FOV_calc),2),',',np.round(max(FOV_calc),2),']')
+            print('baseline length         [m]    :   [',np.round(min(bsl_length),2),',',np.round(max(bsl_length),2),']')  
+            print('angular resolution [arcsec]    :   [',np.round(min(ang_res_calc)*3600,2),',',np.round(max(ang_res_calc)*3600,2),']')
+            print('imagesize           [pixel]    :  ',np.round(image_size,2))
+            print('cellsize     [arcsec/pixel]    :  ',np.round(cell_size*3600,6))
+            print('polarisation property          :  ',mspol_info['STOKES'])
+            print('spectral windows     [SPWD]    :  ',len(msfreq_key))
 
-            print('total frequency range  [Hz] :   %e '%min(freq_range),' --   %e'%max(freq_range))
+            print('total frequency range  [Hz]    :   %e '%min(freq_range),' --   %e'%max(freq_range))
 
-            print('center frequency       [Hz] :   %e '%center_freq)
+            print('center frequency       [Hz]    :   %e '%center_freq)
 
-            print('total bandwidth        [Hz] :   %e '%bandwidth)
+            print('total bandwidth        [Hz]    :   %e '%bandwidth)
 
-            print('total number of channels    :  ',total_number_of_channels)
+            print('total number of channels       :  ',total_number_of_channels)
 
-            print('channels width         [Hz] :   [%e'%min(chan_freq_width),', %e'%max(chan_freq_width),']')
+            print('channels width         [Hz]    :   [%e'%min(chan_freq_width),', %e'%max(chan_freq_width),']')
 
-            print('observed sources            :  ',list(msource_info.keys()))
+            print('observed sources               :  ',list(msource_info.keys()))
 
-            print('field id                    :  ',list(field_info.keys()))
+            print('field id                       :  ',list(field_info.keys()))
 
-            print('time per source         [s] :  ',list(inttimes))
+            print('time per source         [s]    :  ',list(inttimes))
 
-            print('integration time        [s] :   [',np.round(min(np.unique(exptimes)),2),',',np.round(max(np.unique(exptimes)),2),']')  
+            print('integration time        [s]    :   [',np.round(min(np.unique(exptimes)),2),',',np.round(max(np.unique(exptimes)),2),']')  
 
-            print('image sensitivity      [Jy] :  ',image_sens_jy.flatten().tolist())
+            print('image sensitivity      [Jy]    :  ',image_sens_jy.flatten().tolist())
 
-            print('baseline sensitivity   [Jy] :  ',bsl_sens_jy.flatten().tolist())
+            print('baseline sensitivity   [Jy]    :  ',bsl_sens_jy.flatten().tolist())
 
+            print('antennas close to array center :  ',antinfo_pos[2].flatten().tolist()[:6])
 
 
         fullspecinfo = 1
