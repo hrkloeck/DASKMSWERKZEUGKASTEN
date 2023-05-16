@@ -231,19 +231,22 @@ def main():
 
     # select data based on antenna
     #
+    #
     if len(select_uvdis) > 2:
-        print('\t\t-- select on uvdistance')
         sel_uvdis = eval(select_uvdis)
-        bsl_index_new = []
-        #
-        for bsl in bsl_index:
-            if ms_bsls_length[bsl] > sel_uvdis[0] and ms_bsls_length[bsl] <= sel_uvdis[1]:
-                    bsl_index_new.append(bsl)
-                
-        bsl_index = bsl_index_new
-        if len(bsl_index) == 0:
-            print('Baselines with UV distance not present in dataset: ',select_uvdis)
-            sys.exit(-1)
+        if sel_uvdis[0] != sel_uvdis[1]:
+            print('\t\t-- select on uvdistance')
+            sel_uvdis = eval(select_uvdis)
+            bsl_index_new = []
+            #
+            for bsl in bsl_index:
+                if ms_bsls_length[bsl] > sel_uvdis[0] and ms_bsls_length[bsl] <= sel_uvdis[1]:
+                        bsl_index_new.append(bsl)
+
+            bsl_index = bsl_index_new
+            if len(bsl_index) == 0:
+                print('Baselines with UV distance not present in dataset: ',select_uvdis)
+                sys.exit(-1)
 
 
     # get the polarisation info
