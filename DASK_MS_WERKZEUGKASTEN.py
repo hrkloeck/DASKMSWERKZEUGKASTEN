@@ -263,8 +263,6 @@ def ms_baselines(msdata,tabs='FEED'):
         ants   = list(np.unique(ob_info[0].ANTENNA_ID.values)) 
     elif tabs == 'ANTENNA':
         ants   = list(np.unique(ob_info[0].NAME.values))
-        print(ants)
-        sys.exit(-1)
     else:
         ants = []
 
