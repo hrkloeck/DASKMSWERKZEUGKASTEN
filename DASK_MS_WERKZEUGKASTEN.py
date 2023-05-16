@@ -430,6 +430,11 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
     # Check if data has MODEL data 
     get_model_data = ms_check_col(msdata,'MODEL_DATA')
 
+
+    # Check if data has CORRECTED_DATA data 
+    get_corrected_data = ms_check_col(msdata,'CORRECTED_DATA')
+
+
     # get the frequency info
     daspc     = xds_from_table(msdata+'::SPECTRAL_WINDOW')
     daspcinfo = daspc[0].compute()
@@ -458,14 +463,22 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
                         sub_data_bsl[blidx]['DATA']      = []
                         sub_data_bsl[blidx]['FLAG']      = []
 
+                        if get_corrected_data != -1:
+                            sub_data_bsl[blidx]['CORRDATA'] = []
+
                         if get_model_data != -1:
                             sub_data_bsl[blidx]['MODEL'] = []
+
+
                 else:
 
                     if msds.attrs['DATA_DESC_ID'] == spwd:
                         sub_data_bsl[blidx] = {}
                         sub_data_bsl[blidx]['DATA']      = []
                         sub_data_bsl[blidx]['FLAG']      = []
+
+                        if get_corrected_data != -1:
+                            sub_data_bsl[blidx]['CORRDATA'] = []
 
                         if get_model_data != -1:
                             sub_data_bsl[blidx]['MODEL'] = []
@@ -481,7 +494,13 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
                 sub_data_bsl[blidx]['DATA'].append(msds.DATA.data[sel_bsl])
                 sub_data_bsl[blidx]['FLAG'].append(msds.FLAG.data[sel_bsl])
 
-                # if MODEL presentg inculde also MODEL
+
+                # if CORRECTED data is present inculde 
+                if get_corrected_data != -1:
+                    sub_data_bsl[blidx]['CORRDATA'].append(msds.CORRECTED_DATA.data[sel_bsl])
+
+
+                # if MODEL data is present inculde
                 if get_model_data != -1:
                     sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
 

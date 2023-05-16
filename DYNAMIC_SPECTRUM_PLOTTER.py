@@ -22,7 +22,6 @@ def main():
     import yaml
 
     import numpy as np
-    from astropy.time import Time
     import matplotlib.pyplot as plt
     import matplotlib as mpl
 
@@ -53,7 +52,6 @@ def main():
     parser.add_option('--FIELD_ID', dest='field_id', default=0,type=int,
                       help='if MS contains muliple field define on field')
 
-    
     parser.add_option('--DOBSLWATERFALLSPEC', dest='dobslwfspec', action='store_true', default=False,
                       help='produce waterfall spectrum per baseline')
 
@@ -158,6 +156,13 @@ def main():
         print('\n')
 
         sys.exit(-1)
+
+    # check which data column to use
+    if data_type != 'DATA':
+        if INFMS.ms_check_col(MSFN,data_type) == -1:
+            print('\t- DATA column ',data_type,' not present in dataset')
+            sys.exit(-1)
+
 
         
     # Add the source name of the plotfiles
@@ -417,6 +422,7 @@ def main():
                             time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
                             # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
                             time_plt_axis_ticks.append(i)
+                            #time_plt_axis_ticks.append(sel_time_range[i])
 
 
                     if showparameter == 'AMP':
@@ -435,8 +441,7 @@ def main():
 
                     # plt filename 
                     #
-                    ms_bsls_antname[bsl_idx][0]
-
+                    
                     pltname = pltf_marker +showparameter+'_WATERFALL_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
 
                     #pltname = pltf_marker +str(bsl_idx)+'_'+stokes[polr]+'.png'
@@ -554,7 +559,11 @@ def main():
 
             ax.minorticks_on()
             #
-            ax.set_ylabel(showparameter.lower()+' [Jy]')
+            if showparameter == 'AMP':
+                ax.set_ylabel(showparameter.lower()+' [Jy]')
+            else:
+                ax.set_ylabel(showparameter.lower()+' [deg]')
+
             ax.set_xlabel('channel')
             #
 
@@ -615,6 +624,8 @@ def main():
                 time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
                 # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
                 time_plt_axis_ticks.append(i)
+                #time_plt_axis_ticks.append(sel_time_range[i])
+
 
 
 
