@@ -73,6 +73,8 @@ def main():
     parser.add_option('--CHANNELSLIDE', dest='chnslide', default='[0,0]', type=str,
                       help='select channel range to plot [channel1,channel2]')
 
+    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=0, type=float,
+                      help='select spectral window (default 0)')
 
     parser.add_option('--SELECT_BSL', dest='select_bsl', default='[[]]', type=str,
                       help='select baselines (e.g. [[ANT1,ANT2],[ANT3,ANT8]])')
@@ -116,6 +118,7 @@ def main():
     select_bsl          = opts.select_bsl
     select_ant          = opts.select_ant
     select_uvdis        = opts.select_uvdis
+    select_spwd         = int(opts.select_spwd)
 
     pltf_marker         = opts.pltf_marker
     showparameter       = opts.showparameter
@@ -164,22 +167,15 @@ def main():
             sys.exit(-1)
 
 
-        
     # Add the source name of the plotfiles
     #
     pltf_marker += source_name+'_'
 
     
-    # do some selection
-    #
-    field        = 0
-    selspwds     = -1
-
     # get the baseline information
     #
     ms_bsls         = np.array(INFMS.ms_baselines(MSFN,tabs='FEED'))
     ms_bsls_antname = INFMS.ms_baselines(MSFN,tabs='ANTENNA')
-
 
     #
     if np.cumprod(ms_bsls.shape)[-1] == 0:
@@ -198,6 +194,16 @@ def main():
     #
     # -------------------------
 
+
+    # Get data description (e.g. spectral windows)
+    #
+    dades          = xds_from_table(MSFN+'::DATA_DESCRIPTION')
+    didesinfo      = dades[0].compute()
+    spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
+
+    if len(spwd_idx) > 1:
+        print('Dataset consist of various spectra windows: ',spwd_idx,' use ',int(select_spwd))
+
     # select data based on baselines
     #
     if len(select_bsl) > 4:
@@ -209,7 +215,7 @@ def main():
             for sbsel in sel_bsl:
                 if (ms_bsls_antname[bsl][0] == sbsel[0] and ms_bsls_antname[bsl][1] == sbsel[1] ) or  (ms_bsls_antname[bsl][0] == sbsel[1] and ms_bsls_antname[bsl][1] == sbsel[0]):
                     bsl_index_new.append(bsl)
-                    #print(bsl,ms_bsls[bsl], ms_bsls_antname[bsl])
+
                 
         bsl_index = bsl_index_new
         if len(bsl_index) == 0:
@@ -263,14 +269,14 @@ def main():
     daspcinfo       = daspc[0].compute()
     spwd_freq       = daspcinfo.CHAN_FREQ.data
     spwd_freq_shape = spwd_freq.shape
-
+    
 
     # check if MODEL DATA is present 
     get_model_data = INFMS.ms_check_col(MSFN,'MODEL_DATA')
 
   
     # get a data dictionary ordered by baselines 
-    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=selspwds,bsls=ms_bsls,bsl_idx=bsl_index)
+    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
 
 
     # optain the data from Dask 
@@ -282,6 +288,8 @@ def main():
     average_dynspec['DATA'] = {}
     average_dynspec['MASK'] = {}
 
+
+
     #
     flagged_bsl = 0
     bslnidx     = 0
@@ -291,24 +299,21 @@ def main():
     for bsl_idx in bsl_index:
 
         if doshowprogressbar:
-            # print('Work on baseline: ',ms_bsls[bsl_idx])
-            INFMS.progressBar(i,len(bsl_index))
-        
+            print('Work on baseline: ',ms_bsls[bsl_idx])
+            INFMS.progressBar(bslnidx,len(bsl_index))
+    
 
         # ----- Here starts the investigation
         bsltime  = np.array(bsl_data[bsl_idx]['TIME_CENTROID'])
         bslfreq  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
 
+
         # get data and model and merge all spwds into a large one 
         bsldata  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx][data_type]))
         bslflag  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['FLAG']))   # Note CASA flag data if boolean value is True
+        #
         if get_model_data != -1:
             bslmodel  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['MODEL']))
-
-            
-        # get the time and freq info of the bsl - data (not relly efficient but it works)
-        bsltime  = np.array(bsl_data[bsl_idx]['TIME_CENTROID'])
-        bslfreq  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])[0]
             
         # set the slicer of the data, its defined at the top
         #        
@@ -340,6 +345,7 @@ def main():
             #
             data_fully_flagged = -1
             bslfg_shape        = bslflag[time_r,chan_r,pol_r].shape
+            #
             if bslfg_shape[0] * bslfg_shape[1] == np.count_nonzero(bslflag[time_r,chan_r,pol_r]):
                 data_fully_flagged = 1
                 flagged_bsl += 1
@@ -347,16 +353,15 @@ def main():
                     print('\n\t=== CAUTION NO DATA ON ', ms_bsls[bsl_idx],' ',stokes[pol_r])
 
 
+
             # use the selection also to get the time and frequency information
             #
             sel_time_range = bsltime[time_r]
             sel_freq_range = bslfreq[chan_r]
-
             
             # determine the averages
             #
             if data_fully_flagged == -1:
-
 
                 # select subsection of the data 
                 #
@@ -375,7 +380,7 @@ def main():
                 if mult_mask_shape[2] == 1:
                     mult_mask = mult_mask.reshape(cdata_shape[0],cdata_shape[1])
 
-                if bslnidx == 0:
+                if (stokes[polr] in average_dynspec['DATA']) == False:
                     # Initiate the first array to be filled 
                     #
                     average_dynspec['DATA'][stokes[polr]] = np.copy(cdata * mult_mask)
@@ -442,7 +447,7 @@ def main():
                     # plt filename 
                     #
                     
-                    pltname = pltf_marker +showparameter+'_WATERFALL_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
+                    pltname = pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
 
                     #pltname = pltf_marker +str(bsl_idx)+'_'+stokes[polr]+'.png'
 
@@ -457,7 +462,7 @@ def main():
                     #cmap = mpl.cm.nipy_spectral
                     cmap.set_bad(color='black')
                     #
-                    ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr])
+                    ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
                     ax.minorticks_on()
                     #
                     ax.set_xlabel('channel')
@@ -490,7 +495,7 @@ def main():
                     plt.clf()
                     plt.close('all')
                     
-        bslnidx += 1
+        bslnidx += 1       
 
 
 
@@ -499,7 +504,7 @@ def main():
     if doavgspec:
 
 
-         # loop over all stokes parameters
+        # loop over all stokes parameters
         #
         for polr in range(len(stokes)):
 
@@ -539,7 +544,7 @@ def main():
 
             # the figures
             #
-            pltname = pltf_marker +'SPECTRUM_'+stokes[polr]+'.png'
+            pltname = pltf_marker +'SPECTRUM_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
 
             #
             fig, ax = plt.subplots()
@@ -555,7 +560,7 @@ def main():
 
 
             #
-            ax.set_title(source_name+' '+' corr '+stokes[polr])
+            ax.set_title(source_name+' '+' corr '+stokes[polr]+' spwd '+str(select_spwd))
 
             ax.minorticks_on()
             #
@@ -663,7 +668,7 @@ def main():
 
             # the figures
             #
-            pltname = pltf_marker +'AVERAGE_WATERFALL_'+stokes[polr]+'.png'
+            pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
 
             #
             fig, ax = plt.subplots()
@@ -682,7 +687,7 @@ def main():
                 image1 = plt.imshow(avg_dynamic_spectrum,origin='lower',interpolation='nearest',cmap=cmap)
 
             #
-            ax.set_title(source_name+' '+showparameter+', corr '+stokes[polr])
+            ax.set_title(source_name+' '+showparameter+', corr '+stokes[polr]+', spwd '+str(select_spwd))
 
             ax.minorticks_on()
             #

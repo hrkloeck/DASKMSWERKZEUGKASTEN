@@ -406,16 +406,18 @@ def ms_check_col(msdata,col_name):
     return table_isthere
 
 
-def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
+def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
     """
     return bsl selected dataset for a single field/source
     in a nested dictionary
 
     Dictionary keywords are: 
-    [baseline index][spectral window][DATA]
-    [baseline index][spectral window][FLAG]
-    [baseline index][spectral window][MODEL]   (only if data is present)
-    [baseline index][TIME]
+    [baseline index][DATA]
+    [baseline index][FLAG]
+    [baseline index][MODEL]    (only if data is present)
+    [baseline index][CORRDATA] (only if data is present)
+    [baseline index][TIME_CENTROID]
+    [baseline index][CHAN_FREQ]
     """
     
     # Load the real data
@@ -451,10 +453,11 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
         else:
             spwd = setspwd
 
-        
+
         # Selects only Data from selected field
         #
         if msds.attrs['FIELD_ID'] == field_idx and msds.attrs['DATA_DESC_ID'] == spwd:
+
             #for bl,blidx in zip(bsls,bsl_idx):
             for blidx in bsl_idx:
                 if setspwd == -1:
@@ -468,7 +471,6 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
 
                         if get_model_data != -1:
                             sub_data_bsl[blidx]['MODEL'] = []
-
 
                 else:
 
@@ -504,14 +506,14 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,
                 if get_model_data != -1:
                     sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
 
+                
+                # get the time
+                # CAUTION THIS COULD BE DANGEROUS IF SPWD HAVE DIFFERENT TIME-RANGES
+                sub_data_bsl[blidx]['TIME_CENTROID'] = msds.TIME_CENTROID.data[sel_bsl]
 
-                if msds.attrs['DATA_DESC_ID'] == 0:
-                    # get the time
-                    # CAUTION THIS COULD BE DANGEROUS IF SPWD HAVE DIFFERENT TIME-RANGES
-                    sub_data_bsl[blidx]['TIME_CENTROID'] = msds.TIME_CENTROID.data[sel_bsl]
+                # get the frequency
+                sub_data_bsl[blidx]['CHAN_FREQ'] = spwd_freq[spwd]
 
-                    # get the frequency
-                    sub_data_bsl[blidx]['CHAN_FREQ'] = spwd_freq
 
     return sub_data_bsl
 
