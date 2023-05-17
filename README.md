@@ -123,6 +123,86 @@ detailed source information
 ```
 
 
+Obtain Spectra of your Observations 
+=============
+
+```
+$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 DYNAMIC_SPECTRUM_PLOTTER.py --h
+```
+
+list of arguments
+
+```
+Options:
+  -h, --help            show this help message and exit
+  --MS_FILE=MSFILE      MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms
+  --DATA_TYPE=DATACOLUMN
+                        which data column to use [defaul DATA]
+  --FIELD_ID=FIELD_ID   if MS contains muliple field define on field
+  --DOBSLWATERFALLSPEC  produce waterfall spectrum per baseline
+  --DOPLOTAVGWATERFALLSPEC
+                        produce an averaged waterfall sepctrum
+  --DOPLOTAVGSPECTRUM   produce an average spectrum
+  --PLOTFILEMARKER=PLTF_MARKER
+                        add file indicator in front of the file [defaut =
+                        PLT_]
+  --SHOW=SHOWPARAMETER  = Show the amplitude [AMP] or the [PHASE] [default is
+                        AMP]
+  --DONOTSORTUVDIS      use original sequence of baselines. [default sort
+                        versus UV-distance ]
+  --CHANNELSLIDE=CHNSLIDE
+                        select channel range to plot [channel1,channel2]
+  --SELECT_BSL=SELECT_BSL
+                        select baselines (e.g. [[ANT1,ANT2],[ANT3,ANT8]])
+  --SELECT_ANT=SELECT_ANT
+                        select antennas (e.g. [ANT1,ANT2,ANT3])
+  --SELECT_UVDIS=SELECT_UVDIS
+                        select baselines via UV distance (e.g. [0,100] in
+                        meter)
+  --TESTFLAG=TESTFG     test flag data channels
+                        [[channel1,channel2],[channel1,channel2]]
+  --DOPROGRESSBAR       show progress bar
+
+```
+
+
+Plot data versus time and model per basline (VPLOT)
+=============
+
+```
+$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 VPLOT_DATA_MODEL.py --h
+```
+
+list of arguments
+
+```
+Options:
+  -h, --help            show this help message and exit
+  --MS_FILE=MSFILE      MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms
+  --DATA_TYPE=DATACOLUMN
+                        which data column to use [defaul DATA]
+  --SHOW=SHOWPARAMETER  = Show the amplitude [AMP] or the [PHASE] [default is
+                        AMP]
+  --FIELD_ID=FIELD_ID   if MS contains muliple field define on field
+  --SELECT_BSL=SELECT_BSL
+                        select baselines (e.g. [[ANT1,ANT2],[ANT3,ANT8]])
+  --SELECT_ANT=SELECT_ANT
+                        select antennas (e.g. [ANT1,ANT2,ANT3])
+  --SELECT_UVDIS=SELECT_UVDIS
+                        select baselines via UV distance (e.g. [0,100] in
+                        meter)
+  --CHANNELSLIDE=CHNSLIDE
+                        select channel range to plot [channel1,channel2]
+  --PLOTFILEMARKER=PLTF_MARKER
+                        add file indicator in front of the file [defaut =
+                        PLT_]
+  --DONOTSORTUVDIS      use original sequence of baselines. [default sort
+                        versus UV-distance ]
+  --DOPROGRESSBAR       show progress bar
+
+```
+
+
 
 As a Note
 =============
