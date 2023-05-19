@@ -65,6 +65,9 @@ def main():
     parser.add_option('--CHANNELSLIDE', dest='chnslide', default='[0,0]', type=str,
                       help='select channel range to plot [channel1,channel2]')
 
+    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=0, type=float,
+                      help='select spectral window (default 0)')
+
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
                       help='add file indicator in front of the file [defaut = PLT_]')
 
@@ -108,6 +111,7 @@ def main():
     select_bsl          = opts.select_bsl
     select_ant          = opts.select_ant
     select_uvdis        = opts.select_uvdis    
+    select_spwd         = int(opts.select_spwd)
 
     dosort_versus_uvdis = opts.dosortuvdis    
     # ------------------------------------------------------------------------------
@@ -156,7 +160,6 @@ def main():
     # do some selection
     data_timidex = [0,None]
     field        = 0
-    selspwds     = -1
 
 
     # get the baseline information
@@ -181,6 +184,20 @@ def main():
     #
     # -------------------------
 
+
+    # Get data description (e.g. spectral windows)
+    #
+    dades          = xds_from_table(MSFN+'::DATA_DESCRIPTION')
+    didesinfo      = dades[0].compute()
+    spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
+
+    if len(spwd_idx) > 1:
+        print('Dataset consist of various spectra windows: ',spwd_idx,' use ',int(select_spwd))
+        if int(select_spwd) > spwd_idx[-1]:
+            print('SPWD does not exsist!!!')
+            sys.exit(-1)
+    else:
+        select_spwd = 0
 
     # select data based on baselines
     #
@@ -253,7 +270,7 @@ def main():
 
 
     # get a data dictionary ordered by baselines 
-    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=selspwds,bsls=ms_bsls,bsl_idx=bsl_index)
+    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
 
     # optain the data from Dask 
     bsl_data = dask.compute(ms_bsl_data)[0]
@@ -263,6 +280,7 @@ def main():
 
     stats_info = {}
     i          = 0
+    flagged_bsl = 0
     #
     # sweaps over the baslines
     for bsl_idx in bsl_index:
@@ -399,30 +417,6 @@ def main():
             # print('Work on baseline: ',ms_bsls[bsl_idx])
             INFMS.progressBar(i,len(bsl_index))
             i += 1
-
-
-        # convert the Julian time 
-        #
-        time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
-
-        # define the number of tick labels in time 
-        #
-        if len(sel_time_range) > 100:
-            nth_y = 10
-        else:
-            nth_y = 5
-
-        every_nth_y = int(len(sel_time_range)/nth_y)
-        time_plt_axis_labels = []
-        time_plt_axis_ticks  = []
-        for i in range(len(time_iso)):
-            if i % every_nth_y == 0:
-                sec = int(time_iso[i][5])
-                plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
-                time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
-                # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-                #time_plt_axis_ticks.append(i)
-                time_plt_axis_ticks.append(sel_time_range[i])
                     
 
         import matplotlib.pyplot as plt
@@ -430,19 +424,7 @@ def main():
         # loop over all stokes parameter
         for polr in range(len(stokes)):
             
-            pltname = pltf_marker +showparameter+'_VPLOT_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
-
-            # figure setup 
-            #
-            if len(sel_time_range) > 100:
-                im_size  = (8.27, 11.69)       # A4 portrait
-            else:
-                im_size  = (8.27, 11.69)[::-1]  # A4 landscape
-            plt.rcParams['figure.figsize'] = im_size
-
-
-            fig, ax = plt.subplots()
-
+            
             if showparameter == 'AMP':
                 data_versus_time   = stats_info[bsl_idx][stokes[polr]]['DATA_AMP_time']
                 model_versus_time  = stats_info[bsl_idx][stokes[polr]]['MODEL_AMP_time']
@@ -451,27 +433,68 @@ def main():
                 data_versus_time   = stats_info[bsl_idx][stokes[polr]]['DATA_PHASE_time']
                 model_versus_time  = stats_info[bsl_idx][stokes[polr]]['MODEL_PHASE_time']
 
+            if np.isnan(data_versus_time[0]) == False:
 
-            ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr])
 
-            plt.scatter(sel_time_range,data_versus_time)
-            if data_versus_time.shape == model_versus_time.shape:
-                plt.plot(sel_time_range,model_versus_time,color='red')
+                # convert the Julian time 
+                #
+                time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
 
-            #ax.set_xlabel('time')
-            ax.xaxis_date()
-            #ax.xaxis.set_tick_params(which='minor', bottom=False)
-            ax.set_xticks(time_plt_axis_ticks)
-            ax.set_xticklabels(time_plt_axis_labels,size=8)
-            ax.xaxis.set_tick_params(which="major", rotation=90)
-            
-            if showparameter == 'AMP':
-                ax.set_ylabel(showparameter.lower()+' [Jy]')
-            else:
-                ax.set_ylabel(showparameter.lower()+' [deg]')
+                # define the number of tick labels in time 
+                #
+                if len(sel_time_range) > 100:
+                    nth_y = 10
+                else:
+                    nth_y = 5
 
-            plt.savefig(pltname)
-            plt.close()
+                every_nth_y = int(len(sel_time_range)/nth_y)
+                time_plt_axis_labels = []
+                time_plt_axis_ticks  = []
+                for i in range(len(time_iso)):
+                    if i % every_nth_y == 0:
+                        sec = int(time_iso[i][5])
+                        plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
+                        time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
+                        # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+                        #time_plt_axis_ticks.append(i)
+                        time_plt_axis_ticks.append(sel_time_range[i])
+
+
+                pltname = pltf_marker +showparameter+'_VPLOT_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
+
+                # figure setup 
+                #
+                if len(sel_time_range) > 100:
+                    im_size  = (8.27, 11.69)       # A4 portrait
+                else:
+                    im_size  = (8.27, 11.69)[::-1]  # A4 landscape
+                plt.rcParams['figure.figsize'] = im_size
+
+
+                fig, ax = plt.subplots()
+
+
+
+                ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+
+                plt.scatter(sel_time_range,data_versus_time)
+                if data_versus_time.shape == model_versus_time.shape:
+                    plt.plot(sel_time_range,model_versus_time,color='red')
+
+                #ax.set_xlabel('time')
+                ax.xaxis_date()
+                #ax.xaxis.set_tick_params(which='minor', bottom=False)
+                ax.set_xticks(time_plt_axis_ticks)
+                ax.set_xticklabels(time_plt_axis_labels,size=8)
+                ax.xaxis.set_tick_params(which="major", rotation=90)
+
+                if showparameter == 'AMP':
+                    ax.set_ylabel(showparameter.lower()+' [Jy]')
+                else:
+                    ax.set_ylabel(showparameter.lower()+' [deg]')
+
+                plt.savefig(pltname)
+                plt.close()
                     
 
 

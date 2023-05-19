@@ -203,6 +203,11 @@ def main():
 
     if len(spwd_idx) > 1:
         print('Dataset consist of various spectra windows: ',spwd_idx,' use ',int(select_spwd))
+        if int(select_spwd) > spwd_idx[-1]:
+            print('SPWD does not exsist!!!')
+            sys.exit(-1)
+    else:
+        select_spwd = 0
 
     # select data based on baselines
     #
