@@ -61,6 +61,8 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
         corr           = pickle_data['DATA']['corr']
         source_name    = pickle_data['DATA']['source_name'] 
         select_spwd    = pickle_data['DATA']['select_spwd']
+        set_scan       = pickle_data['DATA']['set_scan']
+
 
         if len(sel_freq_range) > 100 and dofigureswap == False:
             im_size  = (8.27, 11.69)       # A4 portrait
@@ -151,6 +153,7 @@ if  pickle_data['DATA']['type'] == 'WATERFALL':
             corr           = pickle_data['DATA']['corr']
             source_name    = pickle_data['DATA']['source_name'] 
             select_spwd    = pickle_data['DATA']['select_spwd']
+            set_scan       = pickle_data['DATA']['set_scan']
                 
 
 

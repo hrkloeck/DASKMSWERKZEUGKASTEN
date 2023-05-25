@@ -279,7 +279,7 @@ def main():
             sys.exit(-1)
 
 
-    # select data based on antenna
+    # select data based on uvdistance
     #
     #
     if len(select_uvdis) > 2:
@@ -597,6 +597,8 @@ def main():
                 pickle_data['corr']            = stokes[polr]
                 pickle_data['source_name']     = source_name
                 pickle_data['select_spwd']     = select_spwd
+                pickle_data['set_scan']        = set_scan
+
 
                 if scan_num  == -1:
                     picklename = pltf_marker +'SPECTRUM_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
@@ -751,6 +753,7 @@ def main():
                 pickle_data['corr']                 = stokes[polr]
                 pickle_data['source_name']          = source_name
                 pickle_data['select_spwd']          = select_spwd
+                pickle_data['set_scan']             = set_scan
 
 
                 if scan_num  == -1:
