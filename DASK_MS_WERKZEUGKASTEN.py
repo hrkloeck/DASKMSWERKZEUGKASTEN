@@ -406,7 +406,7 @@ def ms_check_col(msdata,col_name):
     return table_isthere
 
 
-def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
+def ms_get_bsl_data_old_backup(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
     """
     return bsl selected dataset for a single field/source
     in a nested dictionary
@@ -415,7 +415,7 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2
     [baseline index][DATA]
     [baseline index][FLAG]
     [baseline index][MODEL]    (only if data is present)
-    [baseline index][CORRDATA] (only if data is present)
+    [baseline index][CORRECTED_DATA] (only if data is present)
     [baseline index][TIME_CENTROID]
     [baseline index][CHAN_FREQ]
     """
@@ -467,7 +467,7 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2
                         sub_data_bsl[blidx]['FLAG']      = []
 
                         if get_corrected_data != -1:
-                            sub_data_bsl[blidx]['CORRDATA'] = []
+                            sub_data_bsl[blidx]['CORRECTED_DATA'] = []
 
                         if get_model_data != -1:
                             sub_data_bsl[blidx]['MODEL'] = []
@@ -480,7 +480,7 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2
                         sub_data_bsl[blidx]['FLAG']      = []
 
                         if get_corrected_data != -1:
-                            sub_data_bsl[blidx]['CORRDATA'] = []
+                            sub_data_bsl[blidx]['CORRECTED_DATA'] = []
 
                         if get_model_data != -1:
                             sub_data_bsl[blidx]['MODEL'] = []
@@ -499,7 +499,7 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2
 
                 # if CORRECTED data is present inculde 
                 if get_corrected_data != -1:
-                    sub_data_bsl[blidx]['CORRDATA'].append(msds.CORRECTED_DATA.data[sel_bsl])
+                    sub_data_bsl[blidx]['CORRECTED_DATA'].append(msds.CORRECTED_DATA.data[sel_bsl])
 
 
                 # if MODEL data is present inculde
@@ -515,6 +515,245 @@ def ms_get_bsl_data(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2
                 sub_data_bsl[blidx]['CHAN_FREQ'] = spwd_freq[spwd]
 
 
+    return sub_data_bsl
+
+
+def ms_get_bsl_data_scan(msdata,field_idx=-1,scan_num=-1,spwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
+    """
+    return bsl selected dataset for a single field/source
+    in a nested dictionary
+
+    Dictionary keywords are: 
+    [baseline index][DATA]
+    [baseline index][FLAG]
+    [baseline index][MODEL]    (only if data is present)
+    [baseline index][CORRECTED_DATA] (only if data is present)
+    [baseline index][TIME_CENTROID]
+    [baseline index][CHAN_FREQ]
+    """
+    
+    ms = xds_from_ms(msdata, group_cols=['DATA_DESC_ID','FIELD_ID','SCAN_NUMBER'])
+
+    # Get data description (e.g. spectral windows)
+    #
+    dades          = xds_from_table(msdata+'::DATA_DESCRIPTION')
+    didesinfo      = dades[0].compute()
+    spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
+
+    # Check if data has MODEL data 
+    get_model_data = ms_check_col(msdata,'MODEL_DATA')
+
+
+    # Check if data has CORRECTED_DATA data 
+    get_corrected_data = ms_check_col(msdata,'CORRECTED_DATA')
+
+
+    # get the frequency info
+    daspc     = xds_from_table(msdata+'::SPECTRAL_WINDOW')
+    daspcinfo = daspc[0].compute()
+    spwd_freq = daspcinfo.CHAN_FREQ.data
+
+    # make a copy of the input
+    set_spwd      = spwd
+    set_scan_num  = scan_num
+    set_field_idx = field_idx   
+
+    sub_data_bsl ={}
+    for msds in ms:
+        #
+        # seting to allow to fish a spectral window out
+        # otherwise will concatenate all spectral windows 
+        #
+        if set_spwd == -1:
+            spwd  = msds.attrs['DATA_DESC_ID']
+        else:
+            spwd  = set_spwd
+
+        if set_scan_num == -1:
+            scan_num  = msds.attrs['SCAN_NUMBER']
+        else:
+            scan_num  = set_scan_num
+
+        if set_field_idx == -1:
+            field_idx  = msds.attrs['FIELD_ID']
+        else:
+            field_idx = set_field_idx
+
+
+        # Selects only Data from selected field
+        #
+        if msds.attrs['FIELD_ID'] == field_idx and msds.attrs['DATA_DESC_ID'] == spwd and msds.attrs['SCAN_NUMBER'] == scan_num:
+
+            #for bl,blidx in zip(bsls,bsl_idx):
+            for blidx in bsl_idx:
+
+                if (blidx in sub_data_bsl) == False:
+                        sub_data_bsl[blidx] = {}
+                        sub_data_bsl[blidx]['CHAN_FREQ'] = []
+                        sub_data_bsl[blidx]['DATA']      = []
+                        sub_data_bsl[blidx]['FLAG']      = []
+
+                        if get_corrected_data != -1:
+                            sub_data_bsl[blidx]['CORRECTED_DATA'] = []
+
+                        if get_model_data != -1:
+                            sub_data_bsl[blidx]['MODEL'] = []
+
+                #print('SPWD',spwd)
+
+                # Selecting baseline data
+                #
+                sel_bsl    = da.logical_and(msds.ANTENNA1.data == bsls[blidx][0],msds.ANTENNA2.data == bsls[blidx][1])    
+
+                #bsl_data   = dask.compute(msds.DATA.data[sel_bsl])
+
+                # store DATA and FLAG's 
+                sub_data_bsl[blidx]['DATA'].append(msds.DATA.data[sel_bsl])
+                sub_data_bsl[blidx]['FLAG'].append(msds.FLAG.data[sel_bsl])
+
+                #print(sub_data_bsl[blidx]['DATA'].compute().shape)
+                #print(msds.TIME_CENTROID.data[sel_bsl].compute().shape,spwd_freq[spwd].shape)
+
+                #print(msds.TIME_CENTROID.data[sel_bsl].compute())
+
+                # if CORRECTED data is present inculde 
+                if get_corrected_data != -1:
+                    sub_data_bsl[blidx]['CORRECTED_DATA'].append(msds.CORRECTED_DATA.data[sel_bsl])
+
+
+                # if MODEL data is present inculde
+                if get_model_data != -1:
+                    sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
+                
+
+                # get the frequency
+                #
+                sub_data_bsl[blidx]['CHAN_FREQ'].append(spwd_freq[spwd])
+
+                # get the time
+                #
+                sub_data_bsl[blidx]['TIME_CENTROID'] = msds.TIME_CENTROID.data[sel_bsl]
+
+
+    
+    return sub_data_bsl
+
+
+def ms_get_bsl_data(msdata,field_idx=-1,spwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
+    """
+    return bsl selected dataset for a single field/source
+    in a nested dictionary
+
+    Dictionary keywords are: 
+    [baseline index][DATA]
+    [baseline index][FLAG]
+    [baseline index][MODEL]    (only if data is present)
+    [baseline index][CORRECTED_DATA] (only if data is present)
+    [baseline index][TIME_CENTROID]
+    [baseline index][CHAN_FREQ]
+    """
+
+    
+    # Load the data
+    ms = xds_from_ms(msdata, group_cols=['DATA_DESC_ID','FIELD_ID'])
+
+    # Get data description (e.g. spectral windows)
+    #
+    dades          = xds_from_table(msdata+'::DATA_DESCRIPTION')
+    didesinfo      = dades[0].compute()
+    spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
+
+    # Check if data has MODEL data 
+    get_model_data = ms_check_col(msdata,'MODEL_DATA')
+
+
+    # Check if data has CORRECTED_DATA data 
+    get_corrected_data = ms_check_col(msdata,'CORRECTED_DATA')
+
+
+    # get the frequency info
+    daspc     = xds_from_table(msdata+'::SPECTRAL_WINDOW')
+    daspcinfo = daspc[0].compute()
+    spwd_freq = daspcinfo.CHAN_FREQ.data
+
+    # make a copy of the input
+    set_spwd      = spwd
+    set_field_idx = field_idx   
+
+    sub_data_bsl ={}
+    for msds in ms:
+        #
+        # seting to allow to fish a spectral window out
+        # otherwise will concatenate all spectral windows 
+        #
+        if set_spwd == -1:
+            spwd  = msds.attrs['DATA_DESC_ID']
+        else:
+            spwd  = set_spwd
+
+        if set_field_idx == -1:
+            field_idx  = msds.attrs['FIELD_ID']
+        else:
+            field_idx = set_field_idx
+
+
+        # Selects only Data from selected field
+        #
+        if msds.attrs['FIELD_ID'] == field_idx and msds.attrs['DATA_DESC_ID'] == spwd:
+
+            #for bl,blidx in zip(bsls,bsl_idx):
+            for blidx in bsl_idx:
+
+                if (blidx in sub_data_bsl) == False:
+                        sub_data_bsl[blidx] = {}
+                        sub_data_bsl[blidx]['CHAN_FREQ'] = []
+                        sub_data_bsl[blidx]['DATA']      = []
+                        sub_data_bsl[blidx]['FLAG']      = []
+
+                        if get_corrected_data != -1:
+                            sub_data_bsl[blidx]['CORRECTED_DATA'] = []
+
+                        if get_model_data != -1:
+                            sub_data_bsl[blidx]['MODEL'] = []
+
+                #print('SPWD',spwd)
+
+                # Selecting baseline data
+                #
+                sel_bsl    = da.logical_and(msds.ANTENNA1.data == bsls[blidx][0],msds.ANTENNA2.data == bsls[blidx][1])    
+
+
+                #bsl_data   = dask.compute(msds.DATA.data[sel_bsl])
+
+                # store DATA and FLAG's 
+                sub_data_bsl[blidx]['DATA'].append(msds.DATA.data[sel_bsl])
+                sub_data_bsl[blidx]['FLAG'].append(msds.FLAG.data[sel_bsl])
+
+                #print(sub_data_bsl[blidx]['DATA'].compute().shape)
+                #print(msds.TIME_CENTROID.data[sel_bsl].compute().shape,spwd_freq[spwd].shape)
+
+                #print(msds.TIME_CENTROID.data[sel_bsl].compute())
+
+                # if CORRECTED data is present inculde 
+                if get_corrected_data != -1:
+                    sub_data_bsl[blidx]['CORRECTED_DATA'].append(msds.CORRECTED_DATA.data[sel_bsl])
+
+
+                # if MODEL data is present inculde
+                if get_model_data != -1:
+                    sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
+
+                # get the frequency
+                #
+                sub_data_bsl[blidx]['CHAN_FREQ'].append(spwd_freq[spwd])
+                
+                # get the time
+                #
+                sub_data_bsl[blidx]['TIME_CENTROID'] = msds.TIME_CENTROID.data[sel_bsl]
+
+
+
+    
     return sub_data_bsl
 
 
@@ -580,6 +819,18 @@ def merge_spwds(bsl_data):
     bsldata_t_c_p   = swap_bsldata.reshape(dataswapshape[0],dataswapshape[1]*dataswapshape[2],dataswapshape[3])
 
     return(bsldata_t_c_p)
+
+def merge_spwds_freqs(freqs):
+    """
+    Reshape the frequency info 
+    [spwd, channels]
+    [spwd * channels]
+    """
+
+    org_shape  = freqs.shape
+    freqs_full = freqs.reshape(org_shape[0]*org_shape[1])
+
+    return(freqs_full)
 
 
 def average_cdata(cdata,axis=1):
