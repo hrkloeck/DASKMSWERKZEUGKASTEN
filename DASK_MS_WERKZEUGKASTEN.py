@@ -797,7 +797,7 @@ def getparameter(filename):
     if filename.count('.py') == 0:
        pfile  = open(filename+'.py','rb')
     else:
-       pfile  = open(filename,'r')
+       pfile  = open(filename,'rb')
     data =  pickle.load(pfile)
     pfile.close()
     return(data)

@@ -91,6 +91,9 @@ def main():
     parser.add_option('--TESTFLAG', dest='testfg', default='[[0,0]]', type=str,
                       help='test flag data channels [[channel1,channel2],[channel1,channel2]]')
 
+    parser.add_option('--DO_SAVE_AVERAGE_DATA', dest='dodatainfoutput',action='store_true',default=False,
+                      help='Generate dump of the averaged data via pickle (AVG_SPEC).')
+
     parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_true',default=False,
                       help='show progress bar ')
 
@@ -124,6 +127,8 @@ def main():
     select_ant          = opts.select_ant
     select_uvdis        = opts.select_uvdis
     select_spwd         = int(opts.select_spwd)
+
+    dodatainfoutput     = opts.dodatainfoutput
 
     pltf_marker         = opts.pltf_marker
     showparameter       = opts.showparameter
@@ -578,13 +583,31 @@ def main():
                     fg_chan = slice(f[0],f[1])        
                     avg_spectrum[time_r,fg_chan] = -9999
 
-
                 avg_spectrum = np.ma.masked_where(avg_spectrum == -9999,avg_spectrum)
 
 
+            if dodatainfoutput:
+
+                pickle_data = {}
+                pickle_data['type']            = 'SPECTRUM'
+                pickle_data['sel_freq_range']  = sel_freq_range
+                pickle_data['avg_spectrum']    = avg_spectrum
+                pickle_data['scan_num']        = scan_num
+                pickle_data['showparameter']   = showparameter
+                pickle_data['corr']            = stokes[polr]
+                pickle_data['source_name']     = source_name
+                pickle_data['select_spwd']     = select_spwd
+
+                if scan_num  == -1:
+                    picklename = pltf_marker +'SPECTRUM_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                else:
+                    picklename = pltf_marker +'SPECTRUM_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                
+                INFMS.saveparameter(picklename,'DATA',pickle_data)
+
             
 
-            if len(sel_time_range) > 100 and dofigureswap == False:
+            if len(sel_freq_range) > 100 and dofigureswap == False:
                 im_size  = (8.27, 11.69)       # A4 portrait
             else:
                 im_size  = (8.27, 11.69)[::-1]  # A4 landscape
@@ -714,6 +737,32 @@ def main():
                 avg_dynamic_spectrum = np.ma.masked_where(avg_dynamic_spectrum == -9999,avg_dynamic_spectrum)
 
 
+            # option to safe the average data
+            #
+            if dodatainfoutput:
+
+                pickle_data = {}
+                pickle_data['sel_time_range']       = sel_time_range
+                pickle_data['sel_freq_range']       = sel_freq_range
+                pickle_data['avg_dynamic_spectrum'] = avg_dynamic_spectrum
+                pickle_data['type']                 = 'WATERFALL'
+                pickle_data['scan_num']             = scan_num
+                pickle_data['showparameter']        = showparameter
+                pickle_data['corr']                 = stokes[polr]
+                pickle_data['source_name']          = source_name
+                pickle_data['select_spwd']          = select_spwd
+
+
+                if scan_num  == -1:
+                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                else:
+                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                
+                INFMS.saveparameter(picklename,'DATA',pickle_data)
+
+
+            # Start the plotting
+            #
             if len(sel_time_range) > 100 and dofigureswap == False:
                 im_size  = (8.27, 11.69)       # A4 portrait
             else:
