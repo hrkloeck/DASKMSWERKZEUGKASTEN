@@ -332,7 +332,8 @@ def main():
                     fullspecinfo = -1
         if fullspecinfo > 0:
             SPWD_INFO = {}
-            
+            chanrange0 = 0
+            chanrange1 = 0
             if doprtdatainfo:
                 print('\ndetailed frequency information')
 
@@ -343,7 +344,9 @@ def main():
                 SPWD_INFO['SPWD_'+fky].update({'SPWD_BANDWIDTH_hz':msfreq_info[fky]['SPW_BW']})
                 SPWD_INFO['SPWD_'+fky].update({'SPWD_NUM_CHANNEL':msfreq_info[fky]['SPW_BW']})
                 SPWD_INFO['SPWD_'+fky].update({'SPWD_CHANNEL_WIDTH_hz':[min(msfreq_info[fky]['CHANWIDTH']),max(msfreq_info[fky]['CHANWIDTH'])]})
-
+                chanrange1 += msfreq_info[fky]['NUM_CHAN']
+                SPWD_INFO['SPWD_'+fky].update({'SPWD_CHANEL_RANGE':[chanrange0,chanrange1]})
+                chanrange0 += msfreq_info[fky]['NUM_CHAN']
 
                 if doprtdatainfo:
                     print('\t--------------')
@@ -351,6 +354,7 @@ def main():
                     print('\tfrequencies     : %e'%(min(msfreq_info[fky]['CHAN_FREQ'])),' --  %e'%(max(msfreq_info[fky]['CHAN_FREQ'])))
                     print('\tbandwidth       : %e'%(msfreq_info[fky]['SPW_BW']))
                     print('\tchannels        :',msfreq_info[fky]['NUM_CHAN'])
+                    print('\tchannel range   :',SPWD_INFO['SPWD_'+fky]['SPWD_CHANEL_RANGE'])
                     print('\tchannel width   : %e'%min(msfreq_info[fky]['CHANWIDTH']),', %e'%max(msfreq_info[fky]['CHANWIDTH']))
 
             if doprtdatainfo:
