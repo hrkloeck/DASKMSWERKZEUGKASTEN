@@ -101,6 +101,8 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
         #
         if showparameter == 'AMP':
             ax.set_ylabel(showparameter.lower()+' [Jy]')
+        elif showparameter == 'FLAGS':
+                ax.set_ylabel(showparameter.lower())
         else:
             ax.set_ylabel(showparameter.lower()+' [deg]')
 
@@ -155,9 +157,6 @@ if  pickle_data['DATA']['type'] == 'WATERFALL':
             select_spwd    = pickle_data['DATA']['select_spwd']
             set_scan       = pickle_data['DATA']['set_scan']
                 
-
-
-
             # convert the Julian time 
             #
             time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms

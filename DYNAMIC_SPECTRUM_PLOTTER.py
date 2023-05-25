@@ -569,6 +569,8 @@ def main():
 
             if showparameter == 'AMP':
                 avg_spectrum = np.absolute(avgerage_spectrum)
+            elif showparameter == 'FLAGS':
+                avg_spectrum = np.sum(average_dynspec['MASK'][stokes[polr]],axis=0)
             else:
                 avg_spectrum   = np.angle(avgerage_spectrum,deg=True)
 
@@ -646,6 +648,8 @@ def main():
             #
             if showparameter == 'AMP':
                 ax.set_ylabel(showparameter.lower()+' [Jy]')
+            elif showparameter == 'FLAGS':
+                ax.set_ylabel(showparameter.lower())
             else:
                 ax.set_ylabel(showparameter.lower()+' [deg]')
 
