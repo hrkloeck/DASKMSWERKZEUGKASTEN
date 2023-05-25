@@ -101,7 +101,7 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
         #
         if showparameter == 'AMP':
             ax.set_ylabel(showparameter.lower()+' [Jy]')
-        elif showparameter == 'FLAGS':
+        elif showparameter == 'FLAG':
                 ax.set_ylabel(showparameter.lower())
         else:
             ax.set_ylabel(showparameter.lower()+' [deg]')

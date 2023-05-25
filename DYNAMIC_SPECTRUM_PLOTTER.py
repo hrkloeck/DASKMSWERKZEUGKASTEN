@@ -569,7 +569,7 @@ def main():
 
             if showparameter == 'AMP':
                 avg_spectrum = np.absolute(avgerage_spectrum)
-            elif showparameter == 'FLAGS':
+            elif showparameter == 'FLAG':
                 avg_spectrum = np.sum(average_dynspec['MASK'][stokes[polr]],axis=0)
             else:
                 avg_spectrum   = np.angle(avgerage_spectrum,deg=True)
@@ -621,9 +621,9 @@ def main():
             # the figures
             #
             if scan_num  == -1:
-                pltname = pltf_marker +'SPECTRUM_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'SPECTRUM_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             else:
-                pltname = pltf_marker +'SPECTRUM_'+'SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'SPECTRUM_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             #
             fig, ax = plt.subplots()
 
@@ -648,7 +648,7 @@ def main():
             #
             if showparameter == 'AMP':
                 ax.set_ylabel(showparameter.lower()+' [Jy]')
-            elif showparameter == 'FLAGS':
+            elif showparameter == 'FLAG':
                 ax.set_ylabel(showparameter.lower())
             else:
                 ax.set_ylabel(showparameter.lower()+' [deg]')
@@ -781,11 +781,9 @@ def main():
             #
         
             if scan_num == -1:
-                pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             else:
-                pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
-
-
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
 
             #
             fig, ax = plt.subplots()
