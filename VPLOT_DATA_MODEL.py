@@ -53,6 +53,9 @@ def main():
     parser.add_option('--FIELD_ID', dest='field_id', default=0,type=int,
                       help='if MS contains muliple field define on field')
 
+    parser.add_option('--SCAN_NUMBER', dest='scan_num', default=-1,type=int,
+                      help='select scan number [no default]. Note overwrites FIELD_ID.')
+
     parser.add_option('--SELECT_BSL', dest='select_bsl', default='[[]]', type=str,
                       help='select baselines (e.g. [[ANT1,ANT2],[ANT3,ANT8]])')
 
@@ -65,8 +68,8 @@ def main():
     parser.add_option('--CHANNELSLIDE', dest='chnslide', default='[0,0]', type=str,
                       help='select channel range to plot [channel1,channel2]')
 
-    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=0, type=float,
-                      help='select spectral window (default 0)')
+    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=-1, type=float,
+                      help='select spectral window (default all)')
 
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
                       help='add file indicator in front of the file [defaut = PLT_]')
@@ -102,7 +105,7 @@ def main():
     data_type           = opts.datacolumn
     field               = opts.field_id
     showparameter       = opts.showparameter
-
+    scan_num            = opts.scan_num
     doshowprogressbar   = opts.progbar
     pltf_marker         = opts.pltf_marker
 
@@ -122,28 +125,47 @@ def main():
     fie_sour     = INFMS.ms_field_info(MSFN)
 
 
+    # define the scan  and overwrites the field number
+    #
+    if scan_num != -1:
+        tot_scans = 0
+        set_scan  = -1
+        print('\nSelect scans ',scan_num)
+        for so in msource_info:
+            tot_scans += len(msource_info[so]['SCAN_ID'])
+            if scan_num in msource_info[so]['SCAN_ID']:
+                field = msource_info[so]['SOURCE_ID'][0]
+                set_scan = scan_num
+        if tot_scans < scan_num:
+            print('\t--Caution seems that input scan number is to high!')
+        if set_scan == -1:
+            print('\t--Caution that scan seems not to be in the MS-set!')
+            sys.exit(-1)
+
+
+    # check if multiple sources are present
+    #
     if len(msource_info.keys()) > 1 and field <= len(msource_info.keys()):
         print('\nMultiple sources present in the MS file')
-
         print('\t- Please define FIELD_ID')
-        fie_sour = INFMS.ms_field_info(MSFN)
         for fi in fie_sour:
             print('\t\t--FIELD_ID ',fi,' ',fie_sour[fi])
-        print('\n\t- Use default FIELD_ID: ',field,' ',fie_sour[str(field)])
+        #
+        print('\n\t- Use FIELD_ID: ',field,' ',fie_sour[str(field)])
         source_name = fie_sour[str(field)]
     else:
         source_name = fie_sour[str(list(fie_sour.keys())[0])]
-    
 
+
+    # just check if field ID has a match
+    #
     if field > len(msource_info.keys()):
         print('\nMultiple sources present in the MS file')
         print('\t- FIELD_ID ',field,'unkown')
         print('\t- Please define FIELD_ID')
-        fie_sour = INFMS.ms_field_info(MSFN)
         for fi in fie_sour:
             print('\t\t--FIELD_ID ',fi,' ',fie_sour[fi])
         print('\n')
-
         sys.exit(-1)
 
 
@@ -192,12 +214,16 @@ def main():
     spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
 
     if len(spwd_idx) > 1:
-        print('Dataset consist of various spectra windows: ',spwd_idx,' use ',int(select_spwd))
+        if select_spwd == -1:
+            print('Dataset consist of various spectra windows: ',spwd_idx,' use all')
+        else:
+            print('Dataset consist of various spectra windows: ',spwd_idx,' select ',select_spwd)
         if int(select_spwd) > spwd_idx[-1]:
             print('SPWD does not exsist!!!')
             sys.exit(-1)
     else:
         select_spwd = 0
+
 
     # select data based on baselines
     #
@@ -234,7 +260,8 @@ def main():
             print('Antenna not present in dataset: ',sel_ant)
             sys.exit(-1)
 
-    # select data based on antenna
+
+    # select data based on uvdistance
     #
     if len(select_uvdis) > 2:
         sel_uvdis = eval(select_uvdis)
@@ -269,8 +296,14 @@ def main():
     get_model_data = INFMS.ms_check_col(MSFN,'MODEL_DATA')
 
 
-    # get a data dictionary ordered by baselines 
-    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
+    # get a data dictionary ordered by baselines
+    # not sure how to cleverly sort the data that it can do both
+    #
+    if scan_num == -1:
+        ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,spwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
+    else:
+        ms_bsl_data    = INFMS.ms_get_bsl_data_scan(MSFN,field_idx=field,scan_num=scan_num,spwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
+
 
     # optain the data from Dask 
     bsl_data = dask.compute(ms_bsl_data)[0]
@@ -295,10 +328,13 @@ def main():
         if stats_info.get(bsl_idx) == None:
             stats_info[bsl_idx] = {}
 
-
-        # ----- Here starts the investigation
+        # ----- get the time info 
         bsltime  = np.array(bsl_data[bsl_idx]['TIME_CENTROID'])
-        bslfreq  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
+
+
+        # get the freq info
+        bslfreq_spwd_chan  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
+        bslfreq = INFMS.merge_spwds_freqs(bslfreq_spwd_chan)
 
 
 
@@ -309,11 +345,7 @@ def main():
             bslmodel  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['MODEL']))
 
             
-        # get the time and freq info of the bsl - data (not relly efficient but it works)
-        bsltime  = np.array(bsl_data[bsl_idx]['TIME_CENTROID'])
-        bslfreq  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
     
-
         # set the slicer of the data, its defined at the top
         #        
         ch_rang  = [0,bslfreq.shape[0]]
@@ -349,15 +381,16 @@ def main():
                 if doshowprogressbar:
                     print('\n\t=== CAUTION NO DATA ON ', ms_bsls[bsl_idx],' ',stokes[pol_r])
 
+            # use the selection also to get the time and frequency information
+            #
+            sel_time_range = bsltime[time_r]
+            sel_freq_range = bslfreq[chan_r]
+
 
             # determine the averages
             #
             if data_fully_flagged == -1:
 
-                # use the selection also to get the time and frequency information
-                #
-                sel_time_range = bsltime[time_r]
-                sel_freq_range = bslfreq[chan_r]
 
                 # select subsection of the data 
                 #
