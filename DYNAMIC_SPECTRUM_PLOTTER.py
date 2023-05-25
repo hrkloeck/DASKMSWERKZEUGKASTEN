@@ -47,10 +47,13 @@ def main():
                       help='MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms')
 
     parser.add_option('--DATA_TYPE', dest='datacolumn', default='DATA',type=str,
-                      help='which data column to use [defaul DATA]')
+                      help='which data column to use e.g. CORRECTED_DATA [default DATA]')
 
     parser.add_option('--FIELD_ID', dest='field_id', default=0,type=int,
                       help='if MS contains muliple field define on field')
+
+    parser.add_option('--SCAN_NUMBER', dest='scan_num', default=-1,type=int,
+                      help='select scan number [no default]. Note overwrites FIELD_ID.')
 
     parser.add_option('--DOBSLWATERFALLSPEC', dest='dobslwfspec', action='store_true', default=False,
                       help='produce waterfall spectrum per baseline')
@@ -73,8 +76,8 @@ def main():
     parser.add_option('--CHANNELSLIDE', dest='chnslide', default='[0,0]', type=str,
                       help='select channel range to plot [channel1,channel2]')
 
-    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=0, type=float,
-                      help='select spectral window (default 0)')
+    parser.add_option('--SELECT_SPWD', dest='select_spwd', default=-1, type=float,
+                      help='select spectral window (default all)')
 
     parser.add_option('--SELECT_BSL', dest='select_bsl', default='[[]]', type=str,
                       help='select baselines (e.g. [[ANT1,ANT2],[ANT3,ANT8]])')
@@ -88,6 +91,8 @@ def main():
     parser.add_option('--TESTFLAG', dest='testfg', default='[[0,0]]', type=str,
                       help='test flag data channels [[channel1,channel2],[channel1,channel2]]')
 
+    parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_true',default=False,
+                      help='show progress bar ')
 
     parser.add_option('--DOPROGRESSBAR', dest='progbar', action='store_true',default=False,
                       help='show progress bar ')
@@ -109,7 +114,7 @@ def main():
     MSFN                = opts.msfile
     data_type           = opts.datacolumn
     field               = opts.field_id
-
+    scan_num            = opts.scan_num
     dobslwfspec         = opts.dobslwfspec
     doavgwfspec         = opts.doavgwfspec
     doavgspec           = opts.doavgspec
@@ -123,42 +128,61 @@ def main():
     pltf_marker         = opts.pltf_marker
     showparameter       = opts.showparameter
     dosort_versus_uvdis = opts.dosortuvdis
+    dofigureswap        = opts.figureswap
     doshowprogressbar   = opts.progbar
     
-
     # ------------------------------------------------------------------------------
     
 
-    # Source Information
+    # Source and Field Information
+    #
     msource_info = INFMS.ms_source_info(MSFN)
     fie_sour     = INFMS.ms_field_info(MSFN)
+
+
+    # define the scan  and overwrites the field number
+    #
+    if scan_num != -1:
+        tot_scans = 0
+        set_scan  = -1
+        print('\nSelect scans ',scan_num)
+        for so in msource_info:
+            tot_scans += len(msource_info[so]['SCAN_ID'])
+            if scan_num in msource_info[so]['SCAN_ID']:
+                field = msource_info[so]['SOURCE_ID'][0]
+                set_scan = scan_num
+        if tot_scans < scan_num:
+            print('\t--Caution seems that input scan number is to high!')
+        if set_scan == -1:
+            print('\t--Caution that scan seems not to be in the MS-set!')
+            sys.exit(-1)
 
 
     # check if multiple sources are present
     #
     if len(msource_info.keys()) > 1 and field <= len(msource_info.keys()):
         print('\nMultiple sources present in the MS file')
-
         print('\t- Please define FIELD_ID')
-        fie_sour = INFMS.ms_field_info(MSFN)
         for fi in fie_sour:
             print('\t\t--FIELD_ID ',fi,' ',fie_sour[fi])
-        print('\n\t- Use default FIELD_ID: ',field,' ',fie_sour[str(field)])
+        #
+        print('\n\t- Use FIELD_ID: ',field,' ',fie_sour[str(field)])
         source_name = fie_sour[str(field)]
     else:
         source_name = fie_sour[str(list(fie_sour.keys())[0])]
-    #
+
+
+    # just check if field ID has a match
     #
     if field > len(msource_info.keys()):
         print('\nMultiple sources present in the MS file')
         print('\t- FIELD_ID ',field,'unkown')
         print('\t- Please define FIELD_ID')
-        fie_sour = INFMS.ms_field_info(MSFN)
         for fi in fie_sour:
             print('\t\t--FIELD_ID ',fi,' ',fie_sour[fi])
         print('\n')
-
         sys.exit(-1)
+
 
     # check which data column to use
     if data_type != 'DATA':
@@ -201,13 +225,18 @@ def main():
     didesinfo      = dades[0].compute()
     spwd_idx       = didesinfo.SPECTRAL_WINDOW_ID.data
 
+
     if len(spwd_idx) > 1:
-        print('Dataset consist of various spectra windows: ',spwd_idx,' use ',int(select_spwd))
+        if select_spwd == -1:
+            print('Dataset consist of various spectra windows: ',spwd_idx,' use all')
+        else:
+            print('Dataset consist of various spectra windows: ',spwd_idx,' select ',select_spwd)
         if int(select_spwd) > spwd_idx[-1]:
             print('SPWD does not exsist!!!')
             sys.exit(-1)
     else:
         select_spwd = 0
+
 
     # select data based on baselines
     #
@@ -278,10 +307,15 @@ def main():
 
     # check if MODEL DATA is present 
     get_model_data = INFMS.ms_check_col(MSFN,'MODEL_DATA')
-
   
-    # get a data dictionary ordered by baselines 
-    ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,setspwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
+
+    # get a data dictionary ordered by baselines
+    # not sure how to cleverly sort the data that it can do both
+    #
+    if scan_num == -1:
+        ms_bsl_data    = INFMS.ms_get_bsl_data(MSFN,field_idx=field,spwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
+    else:
+        ms_bsl_data    = INFMS.ms_get_bsl_data_scan(MSFN,field_idx=field,scan_num=scan_num,spwd=int(select_spwd),bsls=ms_bsls,bsl_idx=bsl_index)
 
 
     # optain the data from Dask 
@@ -292,8 +326,6 @@ def main():
     average_dynspec = {}
     average_dynspec['DATA'] = {}
     average_dynspec['MASK'] = {}
-
-
 
     #
     flagged_bsl = 0
@@ -307,10 +339,13 @@ def main():
             print('Work on baseline: ',ms_bsls[bsl_idx])
             INFMS.progressBar(bslnidx,len(bsl_index))
     
-
-        # ----- Here starts the investigation
+        # ----- get the time info 
         bsltime  = np.array(bsl_data[bsl_idx]['TIME_CENTROID'])
-        bslfreq  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
+
+
+        # get the freq info
+        bslfreq_spwd_chan  = np.array(bsl_data[bsl_idx]['CHAN_FREQ'])
+        bslfreq = INFMS.merge_spwds_freqs(bslfreq_spwd_chan)
 
 
         # get data and model and merge all spwds into a large one 
@@ -319,6 +354,7 @@ def main():
         #
         if get_model_data != -1:
             bslmodel  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['MODEL']))
+
             
         # set the slicer of the data, its defined at the top
         #        
@@ -341,9 +377,9 @@ def main():
 
             # init the dic for each baseline and stokes values
 
-            if stokes[polr] in average_dynspec == False:
-                average_dynspec['DATA'][stokes[polr]] = {}
-                average_dynspec['MASK'][stokes[polr]] = {}
+            #if (stokes[polr] in average_dynspec) == False:
+            #    average_dynspec['DATA'][stokes[polr]] = {}
+            #    average_dynspec['MASK'][stokes[polr]] = {}
         
 
             # Check number of flags and if entire selection is flagged
@@ -356,7 +392,6 @@ def main():
                 flagged_bsl += 1
                 if doshowprogressbar:
                     print('\n\t=== CAUTION NO DATA ON ', ms_bsls[bsl_idx],' ',stokes[pol_r])
-
 
 
             # use the selection also to get the time and frequency information
@@ -400,9 +435,13 @@ def main():
                     average_mask = np.add(average_dynspec['MASK'][stokes[polr]],mult_mask)
                     average_dynspec['MASK'][stokes[polr]] = average_mask
                     #
+                    
+                    # normalisation
+                    #
                     if bslnidx == len(bsl_index) -1:
-                        average_mask[average_mask == 0] = 1
-                        average_dynspec[stokes[polr]] = average_data/average_mask
+                        normalise = average_dynspec['MASK'][stokes[polr]]
+                        normalise[normalise == 0] = 1
+                        average_dynspec['DATA'][stokes[polr]] = average_data/normalise
                         
                         
                 if dobslwfspec:
@@ -443,7 +482,7 @@ def main():
 
                     # figure setup 
                     #
-                    if len(sel_time_range) > 100:
+                    if len(sel_time_range) > 100 and dofigureswap == False:
                         im_size  = (8.27, 11.69)       # A4 portrait
                     else:
                         im_size  = (8.27, 11.69)[::-1]  # A4 landscape
@@ -451,10 +490,10 @@ def main():
 
                     # plt filename 
                     #
-                    
-                    pltname = pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
-
-                    #pltname = pltf_marker +str(bsl_idx)+'_'+stokes[polr]+'.png'
+                    if scan_num == -1:
+                        pltname = pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
+                    else:
+                        pltname = pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
 
                     # the figures
                     #
@@ -467,7 +506,12 @@ def main():
                     #cmap = mpl.cm.nipy_spectral
                     cmap.set_bad(color='black')
                     #
-                    ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+
+                    if scan_num == -1:
+                        ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+                    else:
+                        ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', scan '+str(set_scan)+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+
                     ax.minorticks_on()
                     #
                     ax.set_xlabel('channel')
@@ -513,15 +557,15 @@ def main():
         #
         for polr in range(len(stokes)):
 
+
             # average the data in time
-            avgerage_spectrum = INFMS.average_cdata(average_dynspec[stokes[polr]],axis=0)
+            avgerage_spectrum = INFMS.average_cdata(average_dynspec['DATA'][stokes[polr]],axis=0)
 
 
             if showparameter == 'AMP':
                 avg_spectrum = np.absolute(avgerage_spectrum)
             else:
                 avg_spectrum   = np.angle(avgerage_spectrum,deg=True)
-
 
 
             # apply some test flagging
@@ -540,7 +584,7 @@ def main():
 
             
 
-            if len(sel_time_range) > 100:
+            if len(sel_time_range) > 100 and dofigureswap == False:
                 im_size  = (8.27, 11.69)       # A4 portrait
             else:
                 im_size  = (8.27, 11.69)[::-1]  # A4 landscape
@@ -549,8 +593,10 @@ def main():
 
             # the figures
             #
-            pltname = pltf_marker +'SPECTRUM_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
-
+            if scan_num  == -1:
+                pltname = pltf_marker +'SPECTRUM_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+            else:
+                pltname = pltf_marker +'SPECTRUM_'+'SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             #
             fig, ax = plt.subplots()
 
@@ -564,8 +610,12 @@ def main():
             plt.scatter(np.arange(len(avg_spectrum)),avg_spectrum)
 
 
-            #
-            ax.set_title(source_name+' '+' corr '+stokes[polr]+' spwd '+str(select_spwd))
+            # title 
+            if scan_num  == -1:
+                ax.set_title(source_name+' '+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+            else:
+                ax.set_title(source_name+', scan '+str(set_scan)+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+
 
             ax.minorticks_on()
             #
@@ -645,9 +695,9 @@ def main():
 
 
             if showparameter == 'AMP':
-                avg_dynamic_spectrum = np.absolute(average_dynspec[stokes[polr]])
+                avg_dynamic_spectrum = np.absolute(average_dynspec['DATA'][stokes[polr]])
             else:
-                avg_dynamic_spectrum   = np.angle(average_dynspec[stokes[polr]],deg=True)
+                avg_dynamic_spectrum   = np.angle(average_dynspec['DATA'][stokes[polr]],deg=True)
 
 
             # apply some test flagging
@@ -664,7 +714,7 @@ def main():
                 avg_dynamic_spectrum = np.ma.masked_where(avg_dynamic_spectrum == -9999,avg_dynamic_spectrum)
 
 
-            if len(sel_time_range) > 100:
+            if len(sel_time_range) > 100 and dofigureswap == False:
                 im_size  = (8.27, 11.69)       # A4 portrait
             else:
                 im_size  = (8.27, 11.69)[::-1]  # A4 landscape
@@ -673,7 +723,13 @@ def main():
 
             # the figures
             #
-            pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+        
+            if scan_num == -1:
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+            else:
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+'SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+
+
 
             #
             fig, ax = plt.subplots()
@@ -692,7 +748,10 @@ def main():
                 image1 = plt.imshow(avg_dynamic_spectrum,origin='lower',interpolation='nearest',cmap=cmap)
 
             #
-            ax.set_title(source_name+' '+showparameter+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+            if scan_num == -1:
+                ax.set_title(source_name+' '+showparameter+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+            else:
+                ax.set_title(source_name+' '+showparameter+', scan '+str(set_scan)+', corr '+stokes[polr]+', spwd '+str(select_spwd))
 
             ax.minorticks_on()
             #
@@ -746,9 +805,6 @@ def main():
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
-
-
-
 
 
 
