@@ -141,7 +141,8 @@ def main():
         if set_scan == -1:
             print('\t--Caution that scan seems not to be in the MS-set!')
             sys.exit(-1)
-
+    else:
+        set_scan = scan_num
 
     # check if multiple sources are present
     #

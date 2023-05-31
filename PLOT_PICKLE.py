@@ -127,8 +127,6 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
         ax2.set_xticks(frq_ticks)
         ax2.set_xticklabels(frq_ticks_label,size=8)
         #
-
-        print('kala')
         plt.show()
         sys.exit(-1)
         # save
