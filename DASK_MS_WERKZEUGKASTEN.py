@@ -231,7 +231,8 @@ def order_antenna_wrst_A_center(msdata):
     dist       = []
     dist_a_idx = []
     for i in range(len(ant_pos)):
-        dist.append(np.linalg.norm(ant_pos[i][0]-array_centre))
+
+        dist.append(np.linalg.norm(ant_pos[i]-array_centre))
         dist_a_idx.append(ant_idx[i])
 
     sort_idx = np.argsort(dist)
