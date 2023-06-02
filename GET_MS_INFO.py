@@ -116,7 +116,9 @@ def main():
         field_info = INFMS.ms_field_info(MSFN)
         
         # Source Information
-        msource_info = INFMS.ms_source_info(MSFN)
+        msource_info       = INFMS.ms_source_info(MSFN)
+        source_separations = INFMS.source_separation(msource_info)
+
 
         # Polarisation Information
         mspol_info = INFMS.ms_pol_info(MSFN)
@@ -272,6 +274,8 @@ def main():
 
         MS_FULL_INFO.update({'TIME_PER_SOURCE_s':list(inttimes)})
 
+        MS_FULL_INFO.update({'SOURCE SEPARATION':list(source_separations)})
+
         MS_FULL_INFO.update({'INTEGRATION_TIME_s':[min(np.unique(exptimes)),max(np.unique(exptimes))]})
 
         MS_FULL_INFO.update({'IMAGE_SENSITIVITY_jy':image_sens_jy.flatten().tolist()})
@@ -317,6 +321,8 @@ def main():
             print('field id                       :  ',list(field_info.keys()))
 
             print('time per source         [s]    :  ',list(inttimes))
+
+            #print('source separation     [deg]    :  ',source_separations)
 
             print('integration time        [s]    :   [',np.round(min(np.unique(exptimes)),2),',',np.round(max(np.unique(exptimes)),2),']')  
 
@@ -369,7 +375,15 @@ def main():
 
             if doprtdatainfo:
                 print('\ndetailed source information')
-                print('\t--------------')
+                print('\t--------------\n')
+
+                
+            for s in range(len(source_separations)):
+                print('\t',source_separations[s][0],'\tangular distance to\t',source_separations[s][1],'\t',source_separations[s][2],' [deg]')
+                
+            if doprtdatainfo:
+                print('\t--------------\n')
+            
 
             for so in sinfo_keys:
                 scan_ids   = []

@@ -118,8 +118,21 @@ def ms_source_info(msdata):
     return sour_info
 
 
-
-
+def source_separation(ms_info):
+    """
+    calculates the source separation (astropy great circle)
+    """
+    separation = []
+    keys       = list(ms_info.keys())
+    if len(ms_info.keys()) > 1:
+        for so in range(len(keys)):
+            for soff in range(so+1,len(keys)):
+                so_coord    = SkyCoord(ms_info[keys[so]]['RADEC'][0],ms_info[keys[so]]['RADEC'][1], unit='deg',frame='icrs')
+                offse_coord = SkyCoord(ms_info[keys[soff]]['RADEC'][0],ms_info[keys[soff]]['RADEC'][1], unit='deg',frame='icrs')
+                separation.append([keys[so],keys[soff],so_coord.separation(offse_coord).deg])
+                
+    return separation
+    
 
 def ms_freq_info(msdata):
     """
