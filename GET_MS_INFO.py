@@ -374,9 +374,10 @@ def main():
             SCAN_INFO = {}
 
             if doprtdatainfo:
-                print('\ndetailed source information')
-                print('\t--------------\n')
+                print('\ndetailed source information\n')
 
+
+            print('\t--------------')
                 
             for s in range(len(source_separations)):
                 print('\t',source_separations[s][0],'\tangular distance to\t',source_separations[s][1],'\t',source_separations[s][2],' [deg]')
@@ -385,6 +386,7 @@ def main():
                 print('\t--------------\n')
             
 
+            print('\t--------------')
             for so in sinfo_keys:
                 scan_ids   = []
                 scan_times = []
@@ -400,7 +402,7 @@ def main():
                     print('\t--------------')
                 SCAN_INFO[so].update({'SCN_IDS':scan_ids})
                 SCAN_INFO[so].update({'SCN_TIMES':scan_times})
-                print('\n')
+
             if doprtdatainfo:
                 print('\n')
 
