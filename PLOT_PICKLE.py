@@ -55,14 +55,13 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
 
         sel_freq_range = pickle_data['DATA']['sel_freq_range']
         avg_spectrum   = pickle_data['DATA']['avg_spectrum']
-
+        data_type      = pickle_data['DATA']['data_type']
         scan_num       = pickle_data['DATA']['scan_num']
         showparameter  = pickle_data['DATA']['showparameter']
         corr           = pickle_data['DATA']['corr']
         source_name    = pickle_data['DATA']['source_name'] 
         select_spwd    = pickle_data['DATA']['select_spwd']
         set_scan       = pickle_data['DATA']['set_scan']
-
 
         if len(sel_freq_range) > 100 and dofigureswap == False:
             im_size  = (8.27, 11.69)       # A4 portrait
@@ -92,9 +91,9 @@ if  pickle_data['DATA']['type'] == 'SPECTRUM':
 
         # title 
         if scan_num  == -1:
-            ax.set_title(source_name+' '+', corr '+corr+', spwd '+str(select_spwd))
+            ax.set_title(source_name+' '+data_type+' '+', corr '+corr+', spwd '+str(select_spwd))
         else:
-            ax.set_title(source_name+', scan '+str(set_scan)+', corr '+corr+', spwd '+str(select_spwd))
+            ax.set_title(source_name+' '+data_type+', scan '+str(set_scan)+', corr '+corr+', spwd '+str(select_spwd))
 
 
         ax.minorticks_on()
@@ -148,6 +147,7 @@ if  pickle_data['DATA']['type'] == 'WATERFALL':
 
             avg_dynamic_spectrum   = pickle_data['DATA']['avg_dynamic_spectrum']
 
+            data_type      = pickle_data['DATA']['data_type']
             scan_num       = pickle_data['DATA']['scan_num']
             showparameter  = pickle_data['DATA']['showparameter']
             corr           = pickle_data['DATA']['corr']
@@ -220,9 +220,9 @@ if  pickle_data['DATA']['type'] == 'WATERFALL':
 
             #
             if scan_num == -1:
-                ax.set_title(source_name+' '+showparameter+', corr '+corr+', spwd '+str(select_spwd))
+                ax.set_title(source_name+' '+data_type+' '+showparameter+', corr '+corr+', spwd '+str(select_spwd))
             else:
-                ax.set_title(source_name+' '+showparameter+', scan '+str(set_scan)+', corr '+corr+', spwd '+str(select_spwd))
+                ax.set_title(source_name+' '+data_type+' '+showparameter+', scan '+str(set_scan)+', corr '+corr+', spwd '+str(select_spwd))
 
             ax.minorticks_on()
             #
@@ -262,8 +262,6 @@ if  pickle_data['DATA']['type'] == 'WATERFALL':
             cax     = divider.append_axes("right", size="5%", pad=0.15)
             fig.colorbar(image1,cax=cax)
 
-
-            print('kala')
             plt.show()
             sys.exit(-1)
             # save

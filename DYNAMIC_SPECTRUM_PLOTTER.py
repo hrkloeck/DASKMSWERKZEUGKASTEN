@@ -594,6 +594,7 @@ def main():
 
                 pickle_data = {}
                 pickle_data['type']            = 'SPECTRUM'
+                pickle_data['data_type']       = data_type
                 pickle_data['sel_freq_range']  = sel_freq_range
                 pickle_data['avg_spectrum']    = avg_spectrum
                 pickle_data['scan_num']        = scan_num
@@ -605,9 +606,9 @@ def main():
 
 
                 if scan_num  == -1:
-                    picklename = pltf_marker +'SPECTRUM_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                    picklename = pltf_marker +'SPECTRUM_'+data_type+'_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
                 else:
-                    picklename = pltf_marker +'SPECTRUM_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                    picklename = pltf_marker +'SPECTRUM_'+data_type+'_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
                 
                 INFMS.saveparameter(picklename,'DATA',pickle_data)
 
@@ -623,9 +624,9 @@ def main():
             # the figures
             #
             if scan_num  == -1:
-                pltname = pltf_marker +'SPECTRUM_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'SPECTRUM_'+data_type+'_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             else:
-                pltname = pltf_marker +'SPECTRUM_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'SPECTRUM_'+data_type+'_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             #
             fig, ax = plt.subplots()
 
@@ -641,10 +642,9 @@ def main():
 
             # title 
             if scan_num  == -1:
-                ax.set_title(source_name+' '+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+                ax.set_title(source_name+' '+data_type+', corr '+stokes[polr]+', spwd '+str(select_spwd))
             else:
-                ax.set_title(source_name+', scan '+str(set_scan)+', corr '+stokes[polr]+', spwd '+str(select_spwd))
-
+                ax.set_title(source_name+' '+data_type+', scan '+str(set_scan)+', corr '+stokes[polr]+', spwd '+str(select_spwd))
 
             ax.minorticks_on()
             #
@@ -754,6 +754,7 @@ def main():
                 pickle_data['sel_freq_range']       = sel_freq_range
                 pickle_data['avg_dynamic_spectrum'] = avg_dynamic_spectrum
                 pickle_data['type']                 = 'WATERFALL'
+                pickle_data['data_type']            = data_type
                 pickle_data['scan_num']             = scan_num
                 pickle_data['showparameter']        = showparameter
                 pickle_data['corr']                 = stokes[polr]
@@ -763,9 +764,9 @@ def main():
 
 
                 if scan_num  == -1:
-                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+data_type+'_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
                 else:
-                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
+                    picklename = pltf_marker +'AVERAGE_WATERFALL_'+data_type+'_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'_pickle'
                 
                 INFMS.saveparameter(picklename,'DATA',pickle_data)
 
@@ -783,9 +784,9 @@ def main():
             #
         
             if scan_num == -1:
-                pltname = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+data_type+'_'+showparameter+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
             else:
-                pltname = pltf_marker +'AVERAGE_WATERFALL_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
+                pltname = pltf_marker +'AVERAGE_WATERFALL_'+data_type+'_'+showparameter+'_SCAN_'+str(set_scan)+'_SPWD_'+str(select_spwd)+'_'+stokes[polr]+'.png'
 
             #
             fig, ax = plt.subplots()
