@@ -428,7 +428,7 @@ def ms_get_bsl_data_old_backup(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],b
     Dictionary keywords are: 
     [baseline index][DATA]
     [baseline index][FLAG]
-    [baseline index][MODEL]    (only if data is present)
+    [baseline index][MODEL_DATA]    (only if data is present)
     [baseline index][CORRECTED_DATA] (only if data is present)
     [baseline index][TIME_CENTROID]
     [baseline index][CHAN_FREQ]
@@ -540,7 +540,7 @@ def ms_get_bsl_data_scan(msdata,field_idx=-1,scan_num=-1,spwd=-1,bsls=[[0,1],[1,
     Dictionary keywords are: 
     [baseline index][DATA]
     [baseline index][FLAG]
-    [baseline index][MODEL]    (only if data is present)
+    [baseline index][MODEL_DATA]    (only if data is present)
     [baseline index][CORRECTED_DATA] (only if data is present)
     [baseline index][TIME_CENTROID]
     [baseline index][CHAN_FREQ]
@@ -611,7 +611,7 @@ def ms_get_bsl_data_scan(msdata,field_idx=-1,scan_num=-1,spwd=-1,bsls=[[0,1],[1,
                             sub_data_bsl[blidx]['CORRECTED_DATA'] = []
 
                         if get_model_data != -1:
-                            sub_data_bsl[blidx]['MODEL'] = []
+                            sub_data_bsl[blidx]['MODEL_DATA'] = []
 
                 #print('SPWD',spwd)
 
@@ -637,7 +637,7 @@ def ms_get_bsl_data_scan(msdata,field_idx=-1,scan_num=-1,spwd=-1,bsls=[[0,1],[1,
 
                 # if MODEL data is present inculde
                 if get_model_data != -1:
-                    sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
+                    sub_data_bsl[blidx]['MODEL_DATA'].append(msds.MODEL_DATA.data[sel_bsl])
                 
 
                 # get the frequency
@@ -661,7 +661,7 @@ def ms_get_bsl_data(msdata,field_idx=-1,spwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]
     Dictionary keywords are: 
     [baseline index][DATA]
     [baseline index][FLAG]
-    [baseline index][MODEL]    (only if data is present)
+    [baseline index][MODEL_DATA]    (only if data is present)
     [baseline index][CORRECTED_DATA] (only if data is present)
     [baseline index][TIME_CENTROID]
     [baseline index][CHAN_FREQ]
@@ -728,7 +728,7 @@ def ms_get_bsl_data(msdata,field_idx=-1,spwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]
                             sub_data_bsl[blidx]['CORRECTED_DATA'] = []
 
                         if get_model_data != -1:
-                            sub_data_bsl[blidx]['MODEL'] = []
+                            sub_data_bsl[blidx]['MODEL_DATA'] = []
 
                 #print('SPWD',spwd)
 
@@ -755,7 +755,7 @@ def ms_get_bsl_data(msdata,field_idx=-1,spwd=-1,bsls=[[0,1],[1,2]],bsl_idx=[0,2]
 
                 # if MODEL data is present inculde
                 if get_model_data != -1:
-                    sub_data_bsl[blidx]['MODEL'].append(msds.MODEL_DATA.data[sel_bsl])
+                    sub_data_bsl[blidx]['MODEL_DATA'].append(msds.MODEL_DATA.data[sel_bsl])
 
                 # get the frequency
                 #
