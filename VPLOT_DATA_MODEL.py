@@ -343,7 +343,7 @@ def main():
         bsldata  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx][data_type]))
         bslflag  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['FLAG']))   # Note CASA flag data if boolean value is True
         if get_model_data != -1:
-            bslmodel  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['MODEL']))
+            bslmodel  = INFMS.merge_spwds(np.array(bsl_data[bsl_idx]['MODEL_DATA']))
 
             
     
