@@ -7,6 +7,8 @@ from astropy.time import Time
 from astropy import units as u
 import numpy as np
 import sys
+import json
+
 
 
 def ms_field_info(msdata):
@@ -896,7 +898,7 @@ def beams(ant_dia,obs_freq,type='FoV'):
         return((1.02 *  (const.c/obs_freq)/np.array(ant_dia) * 180./pi).value)
 
 
-def SEFD(diameter,T_sys,eta_a):
+def SEFD_theo(diameter,T_sys,eta_a):
     """
     SEFD  stands for system equivalent flux density
 
@@ -918,6 +920,38 @@ def SEFD(diameter,T_sys,eta_a):
 
     return(T_sys / ((eta_a * A)/(2*K_B)))
 
+
+def SEFD_MK_SYSTEM(obsband):
+    """
+    https://www.meerkatplus.tel/mk-technical-details/
+
+    The SEFD's are based on the MK+ page
+    """
+
+    SEFD = 0
+
+    if obsband == 'SBAND':
+        SEFD = 495   # Jy
+    if obsband =='LBAND':
+        SEFD = 426   # Jy
+
+    return SEFD
+
+def SEFD_SKAMID_SYSTEM(obsband):
+    """
+    https://www.meerkatplus.tel/mk-technical-details/
+
+    The SEFD's are based on the MK+ page
+    """
+
+    SEFD = 0
+
+    if obsband == 'SBAND':
+        SEFD = 0.7332 * 495   # Jy
+    if obsband =='LBAND':
+        SEFD = 0.7332 * 426   # Jy
+
+    return SEFD
 
 def image_sensitivity(SEFD,n_ant,t_obs,bw,n_pol,eta_s=1):
     """
@@ -990,20 +1024,38 @@ def image_sensitivity_inhomogenious_array(N_MK,SEFD_MK,N_MKplus,SEFD_SKA,t_int,b
 
     return(image_sensitivity_MKplus)
 
+
 def obs_band(obsfreq):
     """
     return the observation band
+    https://skaafrica.atlassian.net/wiki/spaces/ESDKB/pages/277315585/MeerKAT+specifications
     """
-    if obsfreq > 1.7E9 and obsfreq < 3.5E9:
+    if obsfreq > 1.749E9 and obsfreq < 3.51E9:
         return('SBAND')
-    if obsfreq > 0.8E9 and obsfreq < 1.7E9:
+    if obsfreq > 0.856E9 and obsfreq < 1.712E9:
         return('LBAND')
+    if obsfreq > 0.544E9 and obsfreq < 1.088E9:
+        return('UHFBAND')
+
+def array_phase_center(arrayname):
+    """
+    https://skaafrica.atlassian.net/wiki/spaces/ESDKB/pages/277315585/MeerKAT+specifications
+    """
+    phase_center = []
+
+    if arrayname == MK:
+        phase_center = ['30d,42m,39.8.s','21d26m38.0s','1086.6m']
+
+    return phase_center
 
 def telescope_array_info():
     """
     specific telescope array information
     """
 
+    # provides the Tsys  for the theoretical calculations 
+    # NOT used since 06/23 use the SEFD provided in the MK+ 
+    # page
     #sys_info = nested_dict({'MEERKAT':{}})  # creates a nested dictionary
     #sys_info['MeerKAT']['LBAND']['MKDISH']['TSYS']   = 22.072 
     #sys_info['MeerKAT']['LBAND']['MKDISK']['ETA_A']  = 1 
@@ -1061,10 +1113,45 @@ def datamodelstats(data,model=[],dostatsmeasure='sumdiffsquare'):
             'CAUTION STATS METHOD NOT KNOWN'
             sys.exit(-1)
 
+
+def getbase2dim(imdim):
+    """
+    return the base 2 dimension
+    """
+    
+    bin_size = 2
+    for d in range(int(imdim)):
+        size = bin_size ** d
+        if size >= imdim:
+            bin_size = size
+            break
+    return bin_size
         
 
+# this class is for json dump
+# https://stackoverflow.com/questions/75475315/python-return-json-dumps-got-error-typeerror-object-of-type-int32-is-not-json
+# https://docs.python.org/3/library/json.html
+#
+class NumpyArrayEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        else:
+            return super().default(obj)
 
+def save_to_json(data,dodatainfoutput,homedir):
+    """
+    safe information into a json file
+    """
 
+    with open(homedir + dodatainfoutput, 'w') as fout:
+        json_dumps_str = json.dumps(data,indent=4,sort_keys=False,separators=(',', ': '),cls=NumpyArrayEncoder)
+        print(json_dumps_str, file=fout)
+    return homedir + dodatainfoutput
 
 
 #h = telescope_array_info()

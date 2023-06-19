@@ -112,6 +112,7 @@ def main():
         # get baseline length 
         bsl_length = INFMS.ms_baselines_length(MSFN)
 
+
         # Field Information
         field_info = INFMS.ms_field_info(MSFN)
         
@@ -208,7 +209,11 @@ def main():
 
         if array_type == 'HOMOGENEOUS':
 
-            SEFD      = INFMS.SEFD(np.unique(msinfo['DISH_DIAMETER']),T_sys,eta_a)
+            # in case you want the theoretical
+            # SEFD      = INFMS.SEFD_theo(np.unique(msinfo['DISH_DIAMETER']),T_sys,eta_a)
+
+            # based on the MK+ page
+            SEFD      = INFMS.SEFD_MK_SYSTEM(INFMS.obs_band(center_freq))/1E26
 
             bsl_sens = []
             bsl_sens.append(INFMS.baseline_sensitivity(SEFD,SEFD,bandwidth,min(np.unique(exptimes)),eta_s=1))
@@ -254,12 +259,16 @@ def main():
 
         MS_FULL_INFO.update({'IMAGE_SIZE_pix':image_size})
 
+        MS_FULL_INFO.update({'IMAGE_2BASE_SIZE_pix':INFMS.getbase2dim(image_size)})
+
         MS_FULL_INFO.update({'CELLSIZE_deg_per_pix':cell_size})
 
         MS_FULL_INFO.update({'STOKES':mspol_info['STOKES']})
 
         MS_FULL_INFO.update({'NUM_SPWD':len(msfreq_key)})
         
+        MS_FULL_INFO.update({'OBS_BAND':INFMS.obs_band(center_freq)})
+
         MS_FULL_INFO.update({'FREQ_RANGE_hz':[min(freq_range),max(freq_range)]})
         MS_FULL_INFO.update({'CENTER_FREQ_hz':center_freq})
         MS_FULL_INFO.update({'BAND_WIDTH_hz':bandwidth})
@@ -302,10 +311,11 @@ def main():
             print('baseline length         [m]    :   [',np.round(min(bsl_length),2),',',np.round(max(bsl_length),2),']')  
             print('angular resolution [arcsec]    :   [',np.round(min(ang_res_calc)*3600,2),',',np.round(max(ang_res_calc)*3600,2),']')
             print('imagesize           [pixel]    :  ',np.round(image_size,2))
+            print('imagesize  base2    [pixel]    :  ',INFMS.getbase2dim(image_size))
             print('cellsize     [arcsec/pixel]    :  ',np.round(cell_size*3600,6))
             print('polarisation property          :  ',mspol_info['STOKES'])
+            print('observing Band                 :  ',INFMS.obs_band(center_freq))
             print('spectral windows     [SPWD]    :  ',len(msfreq_key))
-
             print('total frequency range  [Hz]    :   %e '%min(freq_range),' --   %e'%max(freq_range))
 
             print('center frequency       [Hz]    :   %e '%center_freq)
@@ -408,10 +418,12 @@ def main():
 
             MS_FULL_INFO.update(SCAN_INFO)
 
+
+        # Save info into JSON file
         if len(dodatainfoutput) > 0:
-            with open(cwd + dodatainfoutput, 'w') as fout:
-                json_dumps_str = json.dumps(MS_FULL_INFO,indent=4,sort_keys=False,separators=(',', ': '))
-                print(json_dumps_str, file=fout)
+
+            INFMS.save_to_json(MS_FULL_INFO,dodatainfoutput,cwd)
+
 
 if __name__ == "__main__":
     main()
