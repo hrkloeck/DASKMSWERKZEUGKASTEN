@@ -1117,6 +1117,7 @@ def datamodelstats(data,model=[],dostatsmeasure='sumdiffsquare'):
 def getbase2dim(imdim):
     """
     return the base 2 dimension
+    and check if the nedx dimension is to large
     """
     
     bin_size = 2
@@ -1124,7 +1125,15 @@ def getbase2dim(imdim):
         size = bin_size ** d
         if size >= imdim:
             bin_size = size
+            break_d = d
             break
+
+    up   = bin_size - imdim
+    low  = imdim -  2 ** (break_d-1)
+
+    if up > low:
+        bin_size = 2 ** (break_d-1)
+        
     return bin_size
         
 
