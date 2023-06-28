@@ -51,6 +51,7 @@ def ms_source_info(msdata):
         sour_info[s_name]= {}
         sour_info[s_name]['SOURCE_ID']    = [si.SOURCE_ID.values[0]]
         sour_info[s_name]['RADEC']        = [s_coor.ra.degree, s_coor.dec.degree]
+        sour_info[s_name]['glgb']         = [s_coor.galactic.l.degree, s_coor.galactic.b.degree]
         sour_info[s_name]['HMSDMS']       = [s_coor.to_string('hmsdms')]
         sour_info[s_name]['MIDPOINTTIME'] = [si.TIME.values[0]]
         #
@@ -971,7 +972,6 @@ def image_sensitivity(SEFD,n_ant,t_obs,bw,n_pol,eta_s=1):
     delta_image = (1/eta_s) * SEFD / sqrt( n_ant * (n_ant - 1) * t_obs * bw * n_pol ) 
 
     return(delta_image)
-
 
 def baseline_sensitivity(SEFD1,SEFD2,bw,t_int,eta_s=1):
     """

@@ -123,9 +123,9 @@ def main():
 
         # Polarisation Information
         mspol_info = INFMS.ms_pol_info(MSFN)
-
         if len(mspol_info['STOKES']) > 1:
-            n_pol = 2
+            n_pol = 2     # this seeting is for sensitivity calculation
+
 
         # Frequency Information
         msfreq_info = INFMS.ms_freq_info(MSFN)
@@ -247,7 +247,7 @@ def main():
         MS_FULL_INFO.update({'TIMERANGE_STOP_utc':Time(np.amax(np.array(time_range))/(24. * 3600.),scale='utc',format='mjd').iso})
 
         MS_FULL_INFO.update({'NUM_SCANS':noscans})
-        MS_FULL_INFO.update({'NUM_ANT':len(msinfo['ANTS'])})
+        MS_FULL_INFO.update({'NUM_ANT':number_of_antennas})
         MS_FULL_INFO.update({'ANT_DIAMETER_m':list(np.unique(msinfo['DISH_DIAMETER']))})
 
         MS_FULL_INFO.update({'ARRAY_TYPE':array_type})
@@ -304,7 +304,7 @@ def main():
 
             print('number of individual scans     :  ',noscans)
 
-            print('number of antennas             :  ',len(msinfo['ANTS']))
+            print('number of antennas             :  ',number_of_antennas)
             print('antenna diameter        [m]    :  ',np.unique(msinfo['DISH_DIAMETER']))
             print('array type                     :  ',array_type)
             print('field of view  (FoV)  [deg]    :   [',np.round(min(FOV_calc),2),',',np.round(max(FOV_calc),2),']')
@@ -388,7 +388,22 @@ def main():
 
 
             print('\t--------------')
+
+            print(MS_FULL_INFO)
+
+            msource_keys = msource_info.keys()
+            for k in msource_keys:
+                MS_FULL_INFO[k+'coord'] = {}
+                print('\t',k,'\t [RA, DEC]',msource_info[k]['HMSDMS'],'\n\t\t\t [RA, DEC]',msource_info[k]['HMSDMS'],'\n\t\t\t [gl,gb]  ',msource_info[k]['glgb'])
+                MS_FULL_INFO[k+'coord'].update({'HMSDMS':msource_info[k]['HMSDMS']})
+                MS_FULL_INFO[k+'coord'].update({'RADEC':msource_info[k]['RADEC']})
+                MS_FULL_INFO[k+'coord'].update({'glgb':msource_info[k]['glgb']})
+
+
                 
+
+            print('\t--------------')
+
             for s in range(len(source_separations)):
                 print('\t',source_separations[s][0],'\tangular distance to\t',source_separations[s][1],'\t',source_separations[s][2],' [deg]')
                 
