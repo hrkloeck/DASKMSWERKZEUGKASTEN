@@ -389,8 +389,6 @@ def main():
 
             print('\t--------------')
 
-            print(MS_FULL_INFO)
-
             msource_keys = msource_info.keys()
             for k in msource_keys:
                 MS_FULL_INFO[k+'coord'] = {}
