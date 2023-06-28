@@ -392,7 +392,7 @@ def main():
             msource_keys = msource_info.keys()
             for k in msource_keys:
                 MS_FULL_INFO[k+'coord'] = {}
-                print('\t',k,'\t [RA, DEC]',msource_info[k]['HMSDMS'],'\n\t\t\t  [RA, DEC]',msource_info[k]['RADEC'],'\n\t\t\t  [gl,gb]  ',msource_info[k]['glgb'])
+                print('\t',k,'\n\t\t\t [RA, DEC]',msource_info[k]['HMSDMS'],'\n\t\t\t [RA, DEC]',msource_info[k]['RADEC'],'\n\t\t\t [gl,gb]  ',msource_info[k]['glgb'])
                 MS_FULL_INFO[k+'coord'].update({'HMSDMS':msource_info[k]['HMSDMS']})
                 MS_FULL_INFO[k+'coord'].update({'RADEC':msource_info[k]['RADEC']})
                 MS_FULL_INFO[k+'coord'].update({'glgb':msource_info[k]['glgb']})
