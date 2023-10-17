@@ -203,6 +203,47 @@ Options:
 ```
 
 
+Flag a dataset 
+=============
+
+```
+$ singularity exec --bind "$PWD:/data" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /data/FLAG_IT.py --h
+```
+
+list of arguments
+
+```
+Options:
+  -h, --help            show this help message and exit
+  --MS_FILE=MSFILE      MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms
+  --FGMASK_FILE=FGFILE  pickle - FG mask file
+  --FGMASKALLDATA       apply the FG mask to all baselines (ignoring
+                        selection)
+  --ERASEALLFG          erase all the FG information
+  --CASAFGTABNAME=CASAFGTABFILE
+                        CASA FG table name
+  --CASAFGSAVE          save the FG CASA table (using casa flagmanager)
+  --CASAFGRESTORE       restore FG table in MS file (using casa flagmanager)
+  --WORK_DIR=CWD        Points to the working directory if output is produced
+                        (e.g. usefull for containers)
+
+```
+
+To flag a dataset you need to follow the procedure desriped below
+
+1) produce an average spectrum pickle file with DYNAMIC_SPECTRUM_PLOTTER.py using the setting 
+    --DO_SAVE_AVERAGE_DATA=
+
+2) based on the averages a new fg mask can be produced via the DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py
+    --DOFLAGDATA --DO_SAVE_FLAG_MASK=
+
+3) before you apply the new mask you may want to save the current
+flags  use FLAG_IT.py --CASAFGSAVE 
+
+4) use that output to load into FLAG_IT.py as --FGMASK_FILE=
+
+
+
 
 As a Note
 =============
