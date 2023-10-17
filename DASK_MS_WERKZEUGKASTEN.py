@@ -1,3 +1,16 @@
+# HRK 2023
+#
+# Hans-Rainer Kloeckner
+# hrk@mpifr-bonn.mpg.de 
+#
+# this is a first attemp to use dask to extract 
+# and handle data from MS files
+#
+# Hope you enjoy it
+# 
+# --------------------------------------------------------------------
+
+
 from daskms import xds_from_ms,xds_from_table
 import dask
 import dask.array as da
@@ -9,6 +22,49 @@ import numpy as np
 import sys
 import json
 
+
+def ms_data_info(msdata):
+
+    msstab,msstab_kw,msstab_col =  xds_from_table(msdata,table_keywords=True,column_keywords=True)
+
+
+    ms_tables = []
+    for k in msstab_kw:
+        if type(msstab_kw[k]) is str:
+            if msstab_kw[k].count('Table') > 0:
+                ms_tables.append(k)
+
+    ms_data_info = list(msstab_col.keys())
+
+    return ms_tables, ms_data_info
+
+
+def ms_obs_info(msdata):
+
+    ob_info = xds_from_table(msdata+'::OBSERVATION',group_cols='__row__')
+
+    obs_info = {}
+    obs_info['TELESCOPE_NAME'] = list(ob_info[0].TELESCOPE_NAME.values)[0]
+    obs_info['PROJECT']        = list(ob_info[0].PROJECT.values)[0]
+
+    ob_infof                   = xds_from_table(msdata+'::FEED')
+    obs_info['ANTS']           = list(ms_unique_antenna(msdata))  
+
+    ob_infoa                   = xds_from_table(msdata+'::ANTENNA')
+    obs_info['DISH_DIAMETER']  = list(ob_infoa[0].DISH_DIAMETER.values)  
+
+    return obs_info
+
+
+def convert_jd(time):
+    """
+    convert the Julian time into UTC
+    """
+    # convert the Julian time 
+    #
+    time_utc = Time(time/(24. * 3600.),scale='utc',format='mjd').ymdhms
+
+    return time_utc
 
 
 def ms_field_info(msdata):
@@ -135,7 +191,50 @@ def source_separation(ms_info):
                 separation.append([keys[so],keys[soff],so_coord.separation(offse_coord).deg])
                 
     return separation
-    
+   
+
+
+def exposure_per_source(msource_info):
+    """
+    provides the exosure time per source
+    """
+
+
+    # Determine addition time information
+    # copied form the GET_MS_INFO.py
+    sinfo_keys        = msource_info.keys()
+    int_time_so       = {}
+    exposure_time_so  = {}
+    delta_int_time_so = {}
+    time_range        = []
+    noscans           = 0
+
+    for so in sinfo_keys:
+        int_time_so[so] = []
+        delta_int_time_so[so] = []
+        exposure_time_so[so] = []
+
+        for sp in range(len(msource_info[so]['SCANTIMES'])):
+            tmin = msource_info[so]['SCANTIMES'][sp][0] - msource_info[so]['SCANEXPOSURE'][sp][0]/2.0
+            tmax = msource_info[so]['SCANTIMES'][sp][-1] + msource_info[so]['SCANEXPOSURE'][sp][-1]/2.0
+            int_time_so[so].append([tmin,tmax])
+            delta_int_time_so[so].append(tmax-tmin)
+            exposure_time_so[so].append(min(msource_info[so]['SCANEXPOSURE'][sp]))
+            exposure_time_so[so].append(max(msource_info[so]['SCANEXPOSURE'][sp]))
+            time_range.append([tmin,tmax])
+            noscans += 1
+
+
+    inttimepersource = {}
+    inttimes         = []
+    exptimes         = []
+    for so in sinfo_keys:
+        inttimepersource[so] = np.cumsum(delta_int_time_so[so])[-1]
+        inttimes.append(int(np.cumsum(delta_int_time_so[so])[-1]))
+        exptimes += exposure_time_so[so]
+
+    return inttimepersource
+ 
 
 def ms_freq_info(msdata):
     """
@@ -199,23 +298,6 @@ def get_stokes_para(stokesp):
             return st_id[st_p.index('Undefined')]
         else:
             return st_id[st_p.index(stokesp)]
-
-def ms_obs_info(msdata):
-
-    ob_info = xds_from_table(msdata+'::OBSERVATION',group_cols='__row__')
-
-    obs_info = {}
-    obs_info['TELESCOPE_NAME'] = list(ob_info[0].TELESCOPE_NAME.values)[0]
-    obs_info['PROJECT'] = list(ob_info[0].PROJECT.values)[0]
-
-    ob_infof = xds_from_table(msdata+'::FEED')
-    obs_info['ANTS'] = list(ms_unique_antenna(msdata))  
-
-    ob_infoa = xds_from_table(msdata+'::ANTENNA')
-
-    obs_info['DISH_DIAMETER'] = list(ob_infoa[0].DISH_DIAMETER.values)  
-
-    return obs_info
 
 
 def get_array_center(msdata):
@@ -309,6 +391,7 @@ def ms_baselines_length(msdata,bsls=[[]]):
 
     return bsl_norm
 
+
 def get_nearest_bin_value(data,value,type=1):
     """
     provide index of the nearest value
@@ -331,6 +414,7 @@ def ms_tab(msdata,tabs='SOURCE',col=''):
         msstab,msstab_kw,msstab_col = xds_from_table(msdata+'::SOURCE',group_cols='__row__',columns=['DIRECTION', 'PROPER_MOTION', 'CALIBRATION_GROUP', 'CODE', 'INTERVAL', 'NAME', 'NUM_LINES', 'SOURCE_ID', 'SPECTRAL_WINDOW_ID', 'TIME'],table_keywords=True,column_keywords=True)
 
     return list(msstab[0][col].values)
+
 
 def ms_tables(msdata,doinfo=''):
     """
@@ -421,6 +505,312 @@ def ms_check_col(msdata,col_name):
             table_isthere = 1
 
     return table_isthere
+
+
+
+
+def ms_average_data(MSFN,input_field_id,input_scan_no,bsl,data_type,showparameter,print_info):
+    """
+    computes an average spectrum
+    
+    this function extracts the data from the original structure of
+    visibilities (per time correlation products of all baselines)
+    here we select on baselines and average the measurements over 
+    all baselines
+    """
+
+    if print_info:
+        # get some info to 
+        msource_info     = ms_source_info(MSFN)
+        fie_sour         = ms_field_info(MSFN)
+        inttimepersource = exposure_per_source(msource_info)
+
+
+    chunksize = 10000
+
+    # get the measurmment set 
+    # 
+    # define the data sorting IMPORTANT
+    group_cols = ['FIELD_ID', 'SCAN_NUMBER','TIME','DATA_DESC_ID']
+    index_cols = []
+    #
+    ms         = xds_from_ms(MSFN,chunks={'row':chunksize}, group_cols=group_cols,index_cols=index_cols)
+
+    # get the overall information
+    #
+    msstab,msstab_kw,msstab_col =  xds_from_table(MSFN+'::DATA_DESCRIPTION',table_keywords=True,column_keywords=True)
+
+    # get the frequency info
+    #
+    spwd_info   = xds_from_table(MSFN+'::SPECTRAL_WINDOW')
+    spwds       = msstab[0].SPECTRAL_WINDOW_ID.data.compute()
+
+    # get the polarisation info
+    #
+    #pol_info       = xds_from_table(MSFN+'::POLARIZATION')
+    dapolinfo   = ms_pol_info(MSFN)
+    corr_type   = dapolinfo['STOKES']
+
+
+    # here the data averaging is happening
+    #
+    dyn_specs    = {}
+    #
+    previous_scan_no  = 0
+    tcounter          = 0
+    previous_ddid     = 0
+    #
+    for msds in ms:
+
+        # optain sorting info
+        #
+        fie_id     = msds.attrs['FIELD_ID']
+        scan_no    = msds.attrs['SCAN_NUMBER']
+        ddid       = msds.attrs['DATA_DESC_ID']                
+
+
+        #
+        if input_field_id == -1:
+                select_field_id = [fie_id]
+        else:
+                select_field_id = [input_field_id]
+
+        if input_scan_no == -1:
+                select_scan_no = [scan_no]
+        else:
+                select_scan_no = [input_scan_no]
+
+
+        #
+        if (fie_id in select_field_id) and (scan_no in select_scan_no):
+
+
+                # get some progress info to see if its still working
+                #
+                if print_info:
+                    
+                    if ddid - previous_ddid != 0:
+                        tcounter = 0
+                        print('data descent id', ddid)
+
+                    if scan_no - previous_scan_no == 0:
+                        tcounter += (msds.attrs['TIME'] - previous_time)
+
+                    previous_scan_no = scan_no
+                    previous_time    = msds.attrs['TIME']
+                    previous_ddid    = ddid
+
+                    # show progress bar
+                    #
+                    progressBar(int(100*tcounter/inttimepersource[fie_sour[str(fie_id)]]), 100, bar_length=20)
+
+
+                # define baseline selection
+                #
+                if len(bsl) == 0:
+                        sel_bsls  = np.ones(msds.ANTENNA1.shape,dtype=bool)
+                else:
+                        sel_bsls  = np.zeros(msds.ANTENNA1.shape,dtype=bool)                        
+                        for bl in bsl:
+
+                                sel_ant1 = msds.ANTENNA1.data == bl[0]
+
+                                if type(bl[1]) is str and bl[1] == '*':
+                                    sel_ant2 = np.ones(msds.ANTENNA1.shape,dtype=bool)
+                                else:
+                                   sel_ant2 = msds.ANTENNA2.data == bl[1]
+
+                                sel_bsl_single = da.logical_and(sel_ant1,sel_ant2).compute()                    
+                                sel_bsls       = da.logical_or(sel_bsl_single,sel_bsls)
+
+
+                # determine number of baseline
+                # that are selected
+                #
+                sel_bsl_ant1 = msds.ANTENNA1.data.compute()[sel_bsls]
+                sel_bsl_ant2 = msds.ANTENNA2.data.compute()[sel_bsls]
+                #
+                sel_bsls_ant = []
+                for aa in range(len(sel_bsl_ant1)):
+                        sel_bsls_ant.append([sel_bsl_ant1[aa],sel_bsl_ant2[aa]])
+
+
+                # optain info
+                #
+                spwd_id    = msstab[0].SPECTRAL_WINDOW_ID.data[ddid].compute()
+                #pol_id     = msstab[0].POLARIZATION_ID.data[ddid].compute()        
+                #
+                chan_freq  = spwd_info[0].CHAN_FREQ.data[spwd_id].compute()
+                #corr_type  = pol_info[0].CORR_TYPE.data[pol_id].compute()
+                #
+                if ddid != spwd_id:
+                        print('The dask file structuring changed, stopped here')
+                        print('Check ', didd,' and ',spwd_id)
+                        sys.exit(-1)
+
+                # init data selection 
+                #
+                if str(scan_no) not in dyn_specs:
+                        dyn_specs[str(scan_no)]                   = {}
+                        dyn_specs[str(scan_no)]['INFO_SPWD']      = spwds
+                        dyn_specs[str(scan_no)]['INFO_CORR']      = corr_type
+                        dyn_specs[str(scan_no)]['INFO_BSLS']      = sel_bsls_ant
+                        dyn_specs[str(scan_no)]['INFO_DATATYPE']  = data_type
+
+                if str(ddid) not in dyn_specs[str(scan_no)]:
+                        dyn_specs[str(scan_no)][str(spwd_id)] = {}
+                        dyn_specs[str(scan_no)][str(spwd_id)]['chan_freq']        = chan_freq
+                        dyn_specs[str(scan_no)][str(spwd_id)]['bsl_sel']          = bsl
+                        #
+                        dyn_specs[str(scan_no)][str(spwd_id)]['time_range']       = []
+                        dyn_specs[str(scan_no)][str(spwd_id)][data_type]          = []
+                        dyn_specs[str(scan_no)][str(spwd_id)][data_type+'STD']    = []
+                        dyn_specs[str(scan_no)][str(spwd_id)]['flag']             = []   # CAUTION NEEDS TO BE lower case characters
+
+
+
+                if len(sel_bsls_ant) >= 1:
+
+                    # get data
+                    #
+                    time       = msds.attrs['TIME']
+
+                    # include time  
+                    #
+                    dyn_specs[str(scan_no)][str(spwd_id)]['time_range'].append(time)
+
+                    # do the data averaging
+                    #
+                    if data_type == 'DATA' or data_type == 'CORRECTED_DATA' or data_type == 'MODEL':
+                            if showparameter == 'AMP':
+                                    data_dt   = np.abs(msds[data_type].data[sel_bsls].compute())
+                            else:
+                                    data_dt   = np.phase(msds[data_type].data[sel_bsls].compute(),deg=True)
+
+                    else:
+                            data_dt        = msds[data_type].data[sel_bsls].compute()
+
+                    # Generates a dynamic spectrum
+                    #
+                    # Note CASA flag data, boolean value is True
+                    flag_dt        = msds.FLAG.data[sel_bsls].compute()
+
+                    #
+                    #
+                    if len(sel_bsls_ant) > 1:
+                            dyn_specs[str(scan_no)][str(spwd_id)]['flag'].append(flag_dt.astype(dtype=int).mean(axis=0))                        
+                            #
+                            # Note in NUMPY MASKED arrays a bolean value of True is considered invalid  
+                            data_dt_masked = np.ma.masked_array(data_dt,mask=flag_dt)
+                            #
+                            dyn_specs[str(scan_no)][str(spwd_id)][data_type].append(data_dt_masked.mean(axis=0))
+                            dyn_specs[str(scan_no)][str(spwd_id)][data_type+'STD'].append(data_dt_masked.std(axis=0))
+
+                    else:
+                            dyn_specs[str(scan_no)][str(spwd_id)]['flag'].append(flag_dt.astype(dtype=int).mean(axis=0))                        
+                            #
+                            # Note in NUMPY MASKED arrays a bolean value of True is considered invalid  
+                            data_dt_masked = np.ma.masked_array(data_dt,mask=flag_dt)
+                            #
+                            dyn_specs[str(scan_no)][str(spwd_id)][data_type].append(data_dt_masked[0,:,:])
+                            dyn_specs[str(scan_no)][str(spwd_id)][data_type+'STD'].append(data_dt_masked[0,:,:])
+
+
+    return dyn_specs
+
+
+
+def combine_averaged_data(dyn_specs,select_freq,select_time,select_spwd,print_info=True):
+    """
+    will combine the averaged data
+    """
+
+    # get the overall accessing
+    #
+    scans = dyn_specs.keys()
+    scan_key_info = []
+    for sc in scans:
+        sscan_keys = dyn_specs[sc].keys()
+        info_keys = []
+        spwd_id   = []
+        for ssc in sscan_keys:
+        
+            if ssc.count('INFO') > 0:
+                info_keys.append(ssc)
+            else:
+                spwd_id.append(ssc)
+        scan_key_info.append([sc,info_keys,spwd_id])
+
+
+    # build a merged waterfall spectrum
+    #
+    concat_freq       = []
+    concat_time       = []
+    concat_data       = []
+    concat_datastd    = []
+    concat_data_flag  = []
+    #
+    
+    for i, sc in enumerate(scan_key_info):
+        info_corr    = dyn_specs[sc[0]][sc[1][1]]
+        info_bsls    = dyn_specs[sc[0]][sc[1][2]]
+        info_bsls    = dyn_specs[sc[0]][sc[1][2]]
+        data_type    = dyn_specs[sc[0]][sc[1][3]]
+        spwd         = dyn_specs[sc[0]][sc[1][0]]
+
+
+        if select_spwd == -1:
+            for s,sw in enumerate(spwd):
+
+                if print_info:
+                    print('sc',sc)
+                    print('swpd',sw)
+                    print('datatype',data_type)
+                    print('info_corr',info_corr)
+                    print('time',np.array(dyn_specs[sc[0]][str(sw)]['time_range']).shape)
+                    print('freq',np.array(dyn_specs[sc[0]][str(sw)]['chan_freq']).shape)
+                    print('flag',np.array(dyn_specs[sc[0]][str(sw)]['FLAG']).shape)
+                    print('data',np.array(dyn_specs[sc[0]][str(sw)][data_type]).shape)
+
+
+                if s == 0:
+                    concat_sw_data      = dyn_specs[sc[0]][str(sw)][data_type]
+                    concat_sw_datastd   = dyn_specs[sc[0]][str(sw)][data_type+'STD']
+                    concat_sw_flag      = dyn_specs[sc[0]][str(sw)]['FLAG']
+                    concat_freq         = dyn_specs[sc[0]][str(sw)]['chan_freq']
+                else:
+                    concat_sw_data      = np.concatenate((concat_sw_data,dyn_specs[sc[0]][str(sw)][data_type]),axis=1)
+                    concat_sw_datastd   = np.concatenate((concat_sw_datastd,dyn_specs[sc[0]][str(sw)][data_type+'STD']),axis=1)
+                    concat_sw_flag      = np.concatenate((concat_sw_flag,dyn_specs[sc[0]][str(sw)]['FLAG']),axis=1)
+                    concat_freq         = np.concatenate((concat_freq,dyn_specs[sc[0]][str(sw)]['chan_freq']))
+
+                time_sc_sw = dyn_specs[sc[0]][str(sw)]['time_range']
+ 
+
+        else:
+            concat_sw_data      = dyn_specs[sc[0]][str(select_spwd)][data_type]
+            concat_sw_datastd   = dyn_specs[sc[0]][str(select_spwd)][data_type+'STD']
+            concat_sw_flag      = dyn_specs[sc[0]][str(select_spwd)]['FLAG']
+            concat_freq         = dyn_specs[sc[0]][str(select_spwd)]['chan_freq']
+
+            time_sc_sw          = dyn_specs[sc[0]][str(select_spwd)]['time_range']
+
+
+        if i == 0:
+            concat_data         = concat_sw_data
+            concat_datastd      = concat_sw_datastd
+            concat_data_flag    = concat_sw_flag
+            concat_time         = time_sc_sw
+        else:
+            concat_data         = np.concatenate((concat_data,concat_sw_data),axis=0)
+            concat_datastd      = np.concatenate((concat_datastd,concat_sw_datastd),axis=0)
+            concat_data_flag    = np.concatenate((concat_data_flag,concat_sw_flag),axis=0)
+            concat_time         = np.concatenate((concat_time,time_sc_sw))
+
+    return concat_data,concat_datastd,concat_data_flag,concat_freq,concat_time
+
+
+
 
 
 def ms_get_bsl_data_old_backup(msdata,field_idx=0,setspwd=0,bsls=[[0,1],[1,2]],bsl_idx=[0,2]):
@@ -794,6 +1184,16 @@ def nested_dict(existing=None, **kwargs):
 
 
 
+def getitem_recursive(d, key):
+    """
+    # https://stackoverflow.com/questions/71460721/best-way-to-get-nested-dictionary-items
+    """
+    if len(key) !=  1:
+        return getitem_recursive(d[key[0]], key[1:])
+    else:
+        return d[key[0]]
+
+
 def saveparameter(filename,para,data):
     """
     purpose is to save some data into a file for testing issues
@@ -850,6 +1250,8 @@ def merge_spwds_freqs(freqs):
     return(freqs_full)
 
 
+
+
 def average_cdata(cdata,axis=1):
     """
     This averages the complex data by averaging
@@ -868,6 +1270,7 @@ def average_cdata(cdata,axis=1):
     ccdata.imag = np.nanmean(cdata.imag,axis=axis)
     
     return(ccdata)
+
 
 
 def progressBar(value, endvalue, bar_length=20):
@@ -1005,6 +1408,8 @@ def image_sensitivity_inhomogenious_array(N_MK,SEFD_MK,N_MKplus,SEFD_SKA,t_int,b
     n_pol      = number of polarisation (XX YY or RR LL --> maximum 2)
     eta_s      = overall system efficiency (electronic and digital losses)
 
+    I have placed this formula also at the MK+ page
+    https://www.meerkatplus.tel/image-sensitivity-for-a-heterogenous-array/
     """
     import numpy as np
     from math import sqrt
@@ -1162,40 +1567,3 @@ def save_to_json(data,dodatainfoutput,homedir):
         print(json_dumps_str, file=fout)
     return homedir + dodatainfoutput
 
-
-#h = telescope_array_info()
-#print(h)
-
-#sys.exit(-1)
-#import numpy as np
-
-# input for SEFD
-#diameter = np.array([32,32,32,32,32,32,32,32,32,32,32,32,32,32,32,32])
-#tsys     = np.array([45,45,45,45,45,45,45,45,45,45,45,45,45,45,45,45])
-#eta_a    = np.array([1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1])
-#
-#
-#t_observing = 600
-#bandwidth   = 0.8E9
-#nstokes     = 2
-#
-#eta_c       = 1
-
-#nantenna    = len(diameter)
-
-#print(image_sensitivity(SEFD(diameter[0],tsys[0],eta_a[0]),nantenna,t_observing,bandwidth,nstokes))
-
-#sefd_array = SEFD(diameter,tsys,eta_a)
-#print(image_sensitivity_inhomogenious_array(sefd_array,sefd_array,t_observing,bandwidth,nstokes,eta_c))
-
-#sys.exit(-1)
-
-#ssssa = SEFD(32,45,1)
-#print(image_sensitivity(ssssa,10,60,1E-9,1))
-
-#eta_calc = image_sensitivity_inhomogenious(ssss,ssss,10,60,1E-9,1)/image_sensitivity(ssssa,10,60,1E-9,1)
-#print(eta_calc)
-
-#print(image_sensitivity_inhomogenious(ssss,ssss,10,60,1E-9,1,eta_calc))
-
-#print(SEFD(13.5,22.072,1))
