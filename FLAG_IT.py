@@ -32,6 +32,7 @@
 def main():
 
     import sys
+    import shutil
 
     from optparse import OptionParser
     import numpy as np
@@ -110,7 +111,7 @@ def main():
         import CAL2GC_lib as CLIB
         #
         msfile        = cwd + MSFN
-        casa_fg_table = cwd + casafgtabfile
+        casa_fg_table = casafgtabfile
 
         havedone = ''
         if docasasafefg:
@@ -124,7 +125,7 @@ def main():
         # store casa log file to current directory 
         #
         current_casa_log = CLIB.find_CASA_logfile(checkdir='HOME',homdir='')
-        shutil.move(current_casa_log,homedir) 
+        shutil.move(current_casa_log,cwd) 
 
         print('Used CASA flag manager to ',havedone,' ',casa_fg_table)
         sys.exit(-1)
