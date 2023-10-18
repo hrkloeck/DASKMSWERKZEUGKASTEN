@@ -75,7 +75,7 @@ def main():
     parser.add_option('--DOPLTSTDDATA', dest='doplotstddata', action='store_true', default=False,
                       help='plot the stddata instead of the data')
     
-    parser.add_option('--DOUSESTDDATA', dest='dousestddata', action='store_false', default=True,
+    parser.add_option('--DOUSEDATA', dest='dousestddata', action='store_false', default=True,
                       help='use the data instead of the stddata to produce the flag mask')
 
     parser.add_option('--DOBSLWATERFALLSPEC', dest='dobslwfspec', action='store_true', default=False,
@@ -152,8 +152,6 @@ def main():
     # load the data
     #
     pickle_data = getparameter(filename)
-
-    print(pickle_data.keys())
 
     if  dobslwfspec == True or doavgspec == True or doflagthedata == True:
 
