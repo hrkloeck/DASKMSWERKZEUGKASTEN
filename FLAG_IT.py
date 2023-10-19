@@ -37,7 +37,7 @@ def main():
     from optparse import OptionParser
     import numpy as np
 
-    from daskms import xds_from_ms,xds_from_table
+    from daskms import xds_from_ms,xds_from_table,xds_to_table
     import dask
     import dask.array as da
 
@@ -75,6 +75,7 @@ def main():
 
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
+
    
     # ----
 
@@ -103,6 +104,9 @@ def main():
     prtinfo             = True  
     # ------------------------------------------------------------------------------
     
+    # in case you run within a container
+    #
+    MSFN = cwd + MSFN
 
     if len(casafgtabfile) > 0:
         # save the current flag table
@@ -110,7 +114,7 @@ def main():
         import casatasks
         import CAL2GC_lib as CLIB
         #
-        msfile        = cwd + MSFN
+        msfile        = MSFN
         casa_fg_table = casafgtabfile
 
         havedone = ''
@@ -167,7 +171,7 @@ def main():
         print('- Stokes       ',stokes)
         print('- flag on baseline selection ',doflagonbsls)
 
-        if (MSFN == FGMSFILE) == False:
+        if (MSFN.replace(cwd,'') == FGMSFILE.replace(cwd,'')) == False:
             print('\n Caution the input MS-file ',MSFN,' does not match FG mask file origin.')
             sys.exit(-1)
 
@@ -227,11 +231,13 @@ def main():
 
             spwd_id    = msstab[0].SPECTRAL_WINDOW_ID.data[ddid].compute()
 
-            #print('field',fie_id)
-            #print('scan_no',scan_no)
-            #print('ddid',ddid)
-            #print('spwd',spwd_id)
-            #print('time',time)
+            if prtinfo:
+                print('field:     ',fie_id)
+                print('scan_no:   ',scan_no)
+                print('ddid:      ',ddid)
+                print('spwd:      ',spwd_id)
+                print('time:      ',time)
+                print('flagonbsl: ',doflagonbsls)
 
             # define baseline selection per time 
             #
@@ -253,13 +259,16 @@ def main():
             if len(flag_mask.shape) == 3:
                 spwd_flag_mask = flag_mask
             else:
+                if prtinfo:
+                    print('Use mask for spwd: ',spwd_id)
                 spwd_flag_mask = flag_mask[spwd_id]
-
 
             # 
             #
             time_idx = np.where(timerange == time)
             if time_idx[0].size > 0:
+                if prtinfo:
+                    print('Found time stamp in FG MASK\n')
 
                 new_flags           = da.zeros(xds.FLAG.shape,dtype=bool)                        
 
@@ -271,6 +280,8 @@ def main():
                 applied_new_flag.append(time)
 
             else:
+                if prtinfo:
+                    print('NO time stamp found in FG MASK\n')
                 new_flags = flags
 
             
@@ -298,8 +309,9 @@ def main():
     # Finally, trigger the computation.
     da.compute(writes)
 
-    print('Availible time ',len(timerange),'applied FG',len(applied_new_flag))
 
+    if prtinfo:
+        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag))
 
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
