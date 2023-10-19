@@ -144,6 +144,14 @@ def main():
     #
     pickle_data = INFMS.getparameter(fgfilename)
 
+    pickle_keys = pickle_data.keys()
+
+    for pk in pickle_keys:
+        if pk == 'WFDATA':
+            print('\n === You are using tthe wrong pickle file ===\n')
+            print('\n === use DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py  ===\n')
+            sys.exit(-1)
+
     data_type      = pickle_data['FGDATA']['data_type']       
     flag_mask      = pickle_data['FGDATA']['flag_mask']       
     timerange      = pickle_data['FGDATA']['timerange']
