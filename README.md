@@ -207,7 +207,7 @@ Flag a dataset
 =============
 
 ```
-$ singularity exec --bind "$PWD:/data" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /data/FLAG_IT.py --h
+$ singularity exec --bind ${PWD}:/data /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /data/FLAG_IT.py --h
 ```
 
 list of arguments
