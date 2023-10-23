@@ -409,7 +409,7 @@ def main():
         #
         if len(timerange_spwd_stokes) > 1:
             check_time = np.nonzero(np.array(timerange_spwd_stokes[0]) - np.array(timerange_spwd_stokes[1]))
-            if check_time[0] > 1:
+            if check_time[0].size > 1:
                 print('Strange timeanges, data does not fit')
                 sys.exit(-1)
 
