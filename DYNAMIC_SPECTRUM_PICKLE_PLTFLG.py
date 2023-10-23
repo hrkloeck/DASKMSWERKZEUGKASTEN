@@ -109,8 +109,6 @@ def main():
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
 
-
-
     # ----
 
     (opts, args)         = parser.parse_args()
@@ -146,7 +144,7 @@ def main():
     #
     dopltfig            = False            # default setting always plotting into file if plotting is activated
     prtinfo             = True  
-    doflagonbsls        = True            # this setting can be overwritten in the actual DASK_FLAGGER
+    doflagonbsls        = True            # this setting can be overwritten in the actual FLAG_IT programe
     # ------------------------------------------------------------------------------
     
 
@@ -411,7 +409,7 @@ def main():
         #
         if len(timerange_spwd_stokes) > 1:
             check_time = np.nonzero(np.array(timerange_spwd_stokes[0]) - np.array(timerange_spwd_stokes[1]))
-            if check_time[0][0] > 1:
+            if check_time[0] > 1:
                 print('Strange timeanges, data does not fit')
                 sys.exit(-1)
 
