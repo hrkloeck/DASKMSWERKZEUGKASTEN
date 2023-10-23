@@ -94,6 +94,9 @@ def main():
     parser.add_option('--DO_SAVE_FLAG_MASK', dest='dosaveflagmask',type=str,default='',
                       help='Generate dump of the averaged data via pickle file.')
 
+    parser.add_option('--PRE_FLAG_MASK', dest='fgmaskfile', type=str,default='',
+                      help='pickle - file of the mask FG file')
+
     # some internal orga stuff
     parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_false',default=True,
                         help='show progress bar ')
@@ -127,6 +130,9 @@ def main():
 
     dobslwfspec         = opts.dobslwfspec
     doavgspec           = opts.doavgspec
+
+    fgfilename          = opts.fgmaskfile
+
     #
     doflagthedata       = opts.doflagthedata
     flagbyhand          = opts.flagbyhand
@@ -138,7 +144,7 @@ def main():
 
     # hard coded 
     #
-    dopltfig            = True            # default setting always plotting into file if plotting is activated
+    dopltfig            = False            # default setting always plotting into file if plotting is activated
     prtinfo             = True  
     doflagonbsls        = True            # this setting can be overwritten in the actual DASK_FLAGGER
     # ------------------------------------------------------------------------------
@@ -149,11 +155,66 @@ def main():
     casa_flag_coordinates = []
 
 
-    # load the data
+    if len(fgfilename):
+        # load the flag mask 
+        #
+        pickle_data_mask = getparameter(fgfilename)
+
+        pickle_keys = pickle_data_mask.keys()
+
+        for pk in pickle_keys:
+            if pk == 'WFDATA':
+                print('\n === You are using the wrong pickle file ===\n')
+                print('\n === use DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py  ===\n')
+                sys.exit(-1)
+
+        data_type_m      = pickle_data_mask['FGDATA']['data_type']       
+        flag_mask_m      = pickle_data_mask['FGDATA']['flag_mask'] 
+
+        fg_wf_mask      = pickle_data_mask['FGDATA']['fg_wf_mask'] 
+
+        timerange_m      = pickle_data_mask['FGDATA']['timerange']
+        doflagonbsls_m   = pickle_data_mask['FGDATA']['flagonbsl']   
+        bsls_ant_id_m    = pickle_data_mask['FGDATA']['baselines_id'] 
+        bsls_ant_name_m  = pickle_data_mask['FGDATA']['baselines_name']
+        set_scan_m       = pickle_data_mask['FGDATA']['scan_num']
+        showparameter_m  = pickle_data_mask['FGDATA']['showparameter']
+        stokes_m         = pickle_data_mask['FGDATA']['corr']
+        source_name_m    = pickle_data_mask['FGDATA']['source_name']
+        field_m          = pickle_data_mask['FGDATA']['field']
+        FGMSFILE_m       = pickle_data_mask['FGDATA']['MSFN']
+        produced_m       = pickle_data_mask['FGDATA']['produced']
+
+        if prtinfo:
+            print('\n === FLAGER INPUT === ')
+            print('- use ',fgfilename,' for flagging ')
+            print('- produced     ',produced_m)
+            print('- used MS File ',FGMSFILE_m)
+            print('- flag field   ',field_m)
+            print('- flag source  ',source_name_m)
+            print('- Stokes       ',stokes_m)
+            print('- flag on baseline selection ',doflagonbsls_m)
+
+        # 
+        # ------------------------------------------------------------------------------
+
+
+
+    # load the avareged data
     #
     pickle_data = getparameter(filename)
 
     if  dobslwfspec == True or doavgspec == True or doflagthedata == True:
+
+
+        pickle_keys = pickle_data.keys()
+
+        for pk in pickle_keys:
+            if pk == 'FGDATA':
+                print('\n === You are using the FG pickle file ===\n')
+                sys.exit(-1)
+
+
 
         data_type      = pickle_data['WFDATA']['data_type']
         dyn_specs      = pickle_data['WFDATA']['dyn_specs']
@@ -242,6 +303,7 @@ def main():
                     final_mask  = RFIM.flag_data(datatoflag,dyn_spec_avmask,sigma,stats_type,percentage,smooth_kernels,threshold,flagbyhand)
                     # ==============================
 
+
                     # check the impact
                     f_mask_info = RFIM.flag_impact(final_mask,dyn_spec_avmask)
                     #
@@ -258,10 +320,13 @@ def main():
                     flag_data[str(m)][sto]['fg_concat_time']             = fg_concat_time
                     flag_data[str(m)][sto]['fg_concat_freq_per_sw_spwd'] = fg_concat_freq_per_sw_spwd
                     flag_data[str(m)][sto]['fg_info']                    = f_mask_info[2]/f_mask_info[0]*100
+                    flag_data[str(m)][sto]['final_mask']                 = final_mask
                 else:
-                    final_mask = mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
+                    final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
 
 
+                if len(fgfilename) > 0:
+                    final_mask = fg_wf_mask[str(m)][sto]['final_mask']
 
                 # masked the waterfall data
                 #
@@ -345,7 +410,8 @@ def main():
         # rudimental check if timerange match
         #
         if len(timerange_spwd_stokes) > 1:
-            if len(np.nonzero(timerange_spwd_stokes[0] - timerange_spwd_stokes[1])) > 1:
+            check_time = np.nonzero(np.array(timerange_spwd_stokes[0]) - np.array(timerange_spwd_stokes[1]))
+            if check_time[0][0] > 1:
                 print('Strange timeanges, data does not fit')
                 sys.exit(-1)
 
@@ -353,9 +419,11 @@ def main():
 
         # Data structure is changed from 
         # 
+        # if only 1 spwd
         # [stokes, spwd, time, channel] --> [time,channel,stokes]
-        print('Need to check')
-        # [stokes, spwd, time,channel] --> [time,spwd,channel,stokes]
+        #
+        # if multiple spwd
+        # [stokes, spwd, time,channel] --> [spwd,time,channel,stokes]
         #
         # this is the natural MS and used in the dask-ms
         #
@@ -372,6 +440,7 @@ def main():
         pickle_data['type']            = 'FGMASK'
         pickle_data['data_type']       = 'FLAG'
         pickle_data['dousestddata']    = dousestddata
+        pickle_data['fg_wf_mask']      = flag_data
         pickle_data['flag_mask']       = flag_mask
         pickle_data['timerange']       = timerange
         pickle_data['flagonbsl']       = doflagonbsls

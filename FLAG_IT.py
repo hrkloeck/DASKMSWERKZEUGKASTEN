@@ -148,7 +148,7 @@ def main():
 
     for pk in pickle_keys:
         if pk == 'WFDATA':
-            print('\n === You are using tthe wrong pickle file ===\n')
+            print('\n === You are using the wrong pickle file ===\n')
             print('\n === use DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py  ===\n')
             sys.exit(-1)
 
