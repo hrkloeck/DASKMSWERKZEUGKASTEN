@@ -153,8 +153,8 @@ def main():
             sys.exit(-1)
 
     data_type      = pickle_data['FGDATA']['data_type']       
-    flag_mask      = pickle_data['FGDATA']['flag_mask']       
-    timerange      = pickle_data['FGDATA']['timerange']
+    flag_mask      = np.array(pickle_data['FGDATA']['flag_mask'])      
+    timerange      = np.array(pickle_data['FGDATA']['timerange'])
     if doflagonbsls == True:
         doflagonbsls   = pickle_data['FGDATA']['flagonbsl']   
     bsls_ant_id    = pickle_data['FGDATA']['baselines_id'] 
@@ -298,6 +298,8 @@ def main():
             if erase_flag:
                 updated_flags = da.logical_or(new_flags, new_flags)
             else:
+                if prtinfo:
+                    print('Combine org and new flags\n')
                 updated_flags = da.logical_or(flags, new_flags)
 
             # Replace the existing FLAG data variable with the updated version.
