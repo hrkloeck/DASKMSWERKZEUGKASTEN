@@ -274,40 +274,38 @@ def combine_averaged_data(dyn_specs,select_freq,select_time,select_spwd,print_in
 
 
 
-def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True):
+def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True,doticks=False):
 
                     #
                     # Plot waterfall spectrum 
                     #
 
+                    if doticks:
+                        # convert the Julian time 
+                        #
+                        time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
 
 
+                        # define the number of tick labels in time 
+                        #
+                        if len(sel_time_range) > 100:
+                            nth_y = 10
+                        else:
+                            nth_y = 5
 
-                    # convert the Julian time 
-                    #
-                    time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
-
-
-                    # define the number of tick labels in time 
-                    #
-                    if len(sel_time_range) > 100:
-                        nth_y = 10
-                    else:
-                        nth_y = 5
-
-                    every_nth_y = int(len(sel_time_range)/nth_y)
-                    time_plt_axis_labels = []
-                    time_plt_axis_ticks  = []
-                    for i in range(len(time_iso)):
-                        if i % every_nth_y == 0:
-                            sec = int(time_iso[i][5])
-                            plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
-                            time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
-                            # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-                            time_plt_axis_ticks.append(i)
-                            #time_plt_axis_ticks.append(sel_time_range[i])
-                    #
-                    # ####################
+                        every_nth_y = int(len(sel_time_range)/nth_y)
+                        time_plt_axis_labels = []
+                        time_plt_axis_ticks  = []
+                        for i in range(len(time_iso)):
+                            if i % every_nth_y == 0:
+                                sec = int(time_iso[i][5])
+                                plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
+                                time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
+                                # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+                                time_plt_axis_ticks.append(i)
+                                #time_plt_axis_ticks.append(sel_time_range[i])
+                        #
+                        # ####################
 
 
 
@@ -384,11 +382,12 @@ def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_ty
                     # time axis
                     #
                     ax.set_ylabel('time')
-                    ax.yaxis_date()
-                    ax.yaxis.set_tick_params(which='minor', bottom=False)
-                    ax.set_yticks(time_plt_axis_ticks)
-                    ax.set_yticklabels(time_plt_axis_labels,size=8)
-                    ax.yaxis.set_tick_params(which="major", rotation=0)
+                    if doticks:
+                        ax.yaxis_date()
+                        ax.yaxis.set_tick_params(which='minor', bottom=False)
+                        ax.set_yticks(time_plt_axis_ticks)
+                        ax.set_yticklabels(time_plt_axis_labels,size=8)
+                        ax.yaxis.set_tick_params(which="major", rotation=0)
 
 
                     # image

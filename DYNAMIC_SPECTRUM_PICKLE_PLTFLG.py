@@ -88,8 +88,8 @@ def main():
     parser.add_option('--DOFLAGDATA', dest='doflagthedata', action='store_true',default=False,
                       help='Do flag the data')
 
-    parser.add_option('--FLAG_CHAN', dest='flagbyhand', default='[[]]', type=str,
-                      help='flag channel ranges by hand (e.g. [[55,55],[10,30]])')
+    parser.add_option('--FLAG_BY_HAND', dest='flagbyhand', default='[[]]', type=str,
+                      help='flag channel ranges or regions by hand (e.g. [[55,55],[10,30],[BLC_x,BLC_y,TRC_x,TRC_y]])')
 
     parser.add_option('--DO_SAVE_FLAG_MASK', dest='dosaveflagmask',type=str,default='',
                       help='Generate dump of the averaged data via pickle file.')
@@ -99,6 +99,9 @@ def main():
 
     # some internal orga stuff
     parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_false',default=True,
+                        help='show progress bar ')
+
+    parser.add_option('--DONOTICKS', dest='doticks', action='store_false',default=True,
                         help='show progress bar ')
 
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
@@ -141,6 +144,7 @@ def main():
     #
     dofigureswap        = opts.figureswap
     pltf_marker         = opts.pltf_marker
+    doticks             = opts.doticks    # usefull to get the pixels from the image for region flagging
     cwd                 = opts.cwd        # used to write out information us only for container
     prtinfo             = opts.prtinfo  
 
@@ -306,7 +310,7 @@ def main():
                     smooth_kernels = ['robx','roby','scharrx','scharry','sobelx','sobely','canny','prewittx','prewitty']
                     percentage     = 50
                     #
-                    final_mask  = RFIM.flag_data(datatoflag,dyn_spec_avmask,sigma,stats_type,percentage,smooth_kernels,threshold,flagbyhand)
+                    final_mask  = RFIM.flag_data(datatoflag,dyn_spec_avmask,sigma,stats_type,percentage,smooth_kernels,threshold,eval(flagbyhand))
                     # ==============================
 
 
@@ -364,14 +368,14 @@ def main():
                 #
                 if dobslwfspec == True:
 
-                    plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                    WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
-                    #
                     if doplotstddata:
                         plt_filename    =  pltf_marker +showparameter+'_STD_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                        WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+                        WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
+                    else:
+                        plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                        WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
 
-
+                sys.exit(-1)
                 # SPECTRUM plot
                 #
                 if doavgspec == True:
@@ -384,14 +388,12 @@ def main():
                     #plt.plot(concat_freq[m][get_outer_bondaries[0]:get_outer_bondaries[1]],sm_data,'-r')
                     #plt.plot(np.ma.masked_array(concat_freq[m],nf_mask),np.ma.masked_array(avg_dynspec,nf_mask),'-r')
 
-                    plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                    WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
-
                     if doplotstddata:
-
                         plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_STD_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                         WZKPL.spectrum_average(spectrum_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
-
+                    else:
+                        plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                        WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
 
 
 

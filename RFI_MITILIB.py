@@ -561,12 +561,23 @@ def flag_data(data,inputmask,sigma,stats_type,percentage,smooth_kernels,threshol
     cleanup_kernel = [[1,1,1],[1,0,1],[1,1,1]]
     final_mask     = mask_2d_convolve(final_mask.astype(np.float32),final_mask.astype(np.float32),cleanup_kernel,sigma,stats_type)
 
+
+    # Flag by hand
+    #
+    if len(flagbyhand[0]) > 1:
+        for fg in flagbyhand:
+
+            if len(fg) == 2:
+                #print('flag channel')
+                final_mask[:,fg[0]:fg[1]+1] = 1.0
+            if len(fg) == 4:
+                #print('flag region')
+                final_mask[fg[1]:fg[3]+1,fg[0]:fg[2]+1] = 1.0
+
+    # hand over a boolean mask
     # 
     final_mask     = final_mask.astype(bool)
 
-    if len(flagbyhand[0]) > 1:
-        for fg in flagbyhand:
-            final_mask[:,fg[0]:fg[1]+1] = True
    
     return final_mask
 
