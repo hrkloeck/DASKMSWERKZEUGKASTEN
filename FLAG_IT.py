@@ -27,6 +27,7 @@
 #
 # singularity exec --bind ${PWD}:/data HRK_CASA_6.5_DASK.simg python FLAG_IT.py --MS_FILE= --FGMASK_FILE= --WORK_DIR='/data/'
 #
+#
 # --------------------------------------------------------------------
 #
 def main():
@@ -76,6 +77,9 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
+    parser.add_option('--PRTINFO', dest='prtinfo', action='store_true',default=False,
+                      help='Print out information during processing')
+
    
     # ----
 
@@ -101,12 +105,9 @@ def main():
     #
     erase_flag          = opts.erase_flag
     #
-    prtinfo             = True  
+    prtinfo             = opts.prtinfo  
     # ------------------------------------------------------------------------------
     
-    # in case you run within a container
-    #
-    MSFN = cwd + MSFN
 
     if len(casafgtabfile) > 0:
         # save the current flag table
@@ -138,7 +139,7 @@ def main():
     # ------------------------------------------------------------------------------
     # load the FG MASK
     #
-    fgfilename = cwd + fgfile
+    fgfilename = fgfile
 
     # load the flag mask 
     #

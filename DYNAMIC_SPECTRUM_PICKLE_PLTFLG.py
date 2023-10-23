@@ -109,6 +109,9 @@ def main():
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
 
+    parser.add_option('--PRTINFO', dest='prtinfo', action='store_true',default=False,
+                      help='Print out information during processing')
+
     # ----
 
     (opts, args)         = parser.parse_args()
@@ -139,11 +142,11 @@ def main():
     dofigureswap        = opts.figureswap
     pltf_marker         = opts.pltf_marker
     cwd                 = opts.cwd        # used to write out information us only for container
+    prtinfo             = opts.prtinfo  
 
     # hard coded 
     #
     dopltfig            = False            # default setting always plotting into file if plotting is activated
-    prtinfo             = True  
     doflagonbsls        = True            # this setting can be overwritten in the actual FLAG_IT programe
     # ------------------------------------------------------------------------------
     
@@ -198,7 +201,7 @@ def main():
 
 
 
-    # load the avareged data
+    # load the averaged data
     #
     pickle_data = getparameter(filename)
 
@@ -236,6 +239,11 @@ def main():
                 tot_num_spwd =  dyn_specs[list(skeys)[0]]['INFO_SPWD']
         else:
                 tot_num_spwd =  dyn_specs[str(set_scan)]['INFO_SPWD']
+
+
+        # Add the source name of the plotfiles
+        #
+        pltf_marker += source_name+'_'
 
 
         # merge the multi-sw datasets
@@ -397,7 +405,7 @@ def main():
         concat_index          = 0   # just in case if data structure changes in the future
 
         if prtinfo:
-            print('CAUTION HARDCODED INDEX concat_index, may want to change this in the future')
+            print('\nCAUTION HARDCODED INDEX concat_index, may want to change this in the future')
 
         merge_spwd_stokes     = []
         timerange_spwd_stokes = []
@@ -453,7 +461,8 @@ def main():
         pickle_data['produced']        = str(now)
 
 
-        picklename = cwd + dosaveflagmask+'_pickle'
+        picklename = cwd + pltf_marker +dodatainfoutput+'_pickle'
+        #picklename = cwd + dosaveflagmask+'_pickle'
 
         saveparameter(picklename,'FGDATA',pickle_data)
 
