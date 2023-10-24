@@ -106,7 +106,9 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
-    
+    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_true',default=False,
+                      help='Plot Figure instead of printing.')
+
     # ----
 
     (opts, args)         = parser.parse_args()
@@ -140,7 +142,7 @@ def main():
     dofigureswap        = opts.figureswap
     doshowprogressbar   = opts.progbar
     
-    dopltfig            = True            # default setting always plotting into file if plotting is activated
+    dopltfig            = opts.dopltfig   # default setting always plotting into file if plotting is activated
 
     # ------------------------------------------------------------------------------
     

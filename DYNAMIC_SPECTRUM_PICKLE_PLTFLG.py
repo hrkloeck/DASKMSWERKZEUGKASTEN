@@ -111,6 +111,8 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
+    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_true',default=False,
+                      help='Plot Figure instead of printing.')
 
     parser.add_option('--PRTINFO', dest='prtinfo', action='store_true',default=False,
                       help='Print out information during processing')
@@ -147,10 +149,11 @@ def main():
     doticks             = opts.doticks    # usefull to get the pixels from the image for region flagging
     cwd                 = opts.cwd        # used to write out information us only for container
     prtinfo             = opts.prtinfo  
+    dopltfig            = opts.dopltfig   # default setting always plotting into file if plotting is activated
 
     # hard coded 
     #
-    dopltfig            = False            # default setting always plotting into file if plotting is activated
+    
     doflagonbsls        = True            # this setting can be overwritten in the actual FLAG_IT programe
     # ------------------------------------------------------------------------------
     
