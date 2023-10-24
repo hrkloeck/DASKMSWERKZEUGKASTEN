@@ -111,7 +111,7 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
-    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_true',default=False,
+    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_false',default=True,
                       help='Plot Figure instead of printing.')
 
     parser.add_option('--PRTINFO', dest='prtinfo', action='store_true',default=False,
@@ -378,7 +378,6 @@ def main():
                         plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                         WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
 
-                sys.exit(-1)
                 # SPECTRUM plot
                 #
                 if doavgspec == True:

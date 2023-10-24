@@ -106,7 +106,7 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
-    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_true',default=False,
+    parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_false',default=True,
                       help='Plot Figure instead of printing.')
 
     # ----
