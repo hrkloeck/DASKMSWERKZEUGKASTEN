@@ -465,7 +465,7 @@ def main():
         pickle_data['produced']        = str(now)
 
 
-        picklename = cwd + pltf_marker +dodatainfoutput+'_pickle'
+        picklename = cwd + pltf_marker +dosaveflagmask+'_pickle'
         #picklename = cwd + dosaveflagmask+'_pickle'
 
         saveparameter(picklename,'FGDATA',pickle_data)
