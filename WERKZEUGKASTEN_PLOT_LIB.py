@@ -326,15 +326,15 @@ def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_ty
                     # ####################
 
 
-
-
-
                     # figure setup 
+                    # default is landscape
                     #
-                    if len(sel_time_range) > 100 and dofigureswap == False:
-                        im_size  = (8.27, 11.69)       # A4 portrait
-                    else:
+                    if dofigureswap:
                         im_size  = (8.27, 11.69)[::-1]  # A4 landscape
+                    else:
+                        im_size  = (8.27, 11.69)       # A4 portrait
+
+                    #
                     plt.rcParams['figure.figsize'] = im_size
 
 
@@ -413,11 +413,14 @@ def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_ty
 def spectrum_average(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True):
 
 
-            if len(frequency) > 100 and dofigureswap == False:
-                im_size  = (8.27, 11.69)       # A4 portrait
-            else:
-                im_size  = (8.27, 11.69)[::-1]  # A4 landscape
-
+           # figure setup 
+           # default is landscape
+           #
+           if dofigureswap:
+               im_size  = (8.27, 11.69)[::-1]  # A4 landscape
+           else:
+               im_size  = (8.27, 11.69)       # A4 portrait
+            #
             plt.rcParams['figure.figsize'] = im_size
 
             # plt filename 
