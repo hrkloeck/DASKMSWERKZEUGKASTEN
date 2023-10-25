@@ -112,6 +112,9 @@ def main():
     parser.add_option('--DOPLTFIG', dest='dopltfig', action='store_false',default=True,
                       help='Plot Figure instead of printing.')
 
+    parser.add_option('--DONOTICKS', dest='doticks', action='store_false',default=True,
+                        help='show progress bar ')
+
     # ----
 
     (opts, args)         = parser.parse_args()
@@ -147,7 +150,7 @@ def main():
     doshowprogressbar   = opts.progbar
     
     dopltfig            = opts.dopltfig   # default setting always plotting into file if plotting is activated
-
+    doticks             = opts.doticks    # usefull to get the pixels from the image for region flagging
     # ------------------------------------------------------------------------------
     
 
@@ -455,10 +458,10 @@ def main():
                 # print('\n=== Average Waterfall Spectrum plotting ===')
                 #
                 plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+                WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
                 #
                 plt_filename    =  pltf_marker +showparameter+'_STD_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+                WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
 
             # SPECTRUM plot
             #
