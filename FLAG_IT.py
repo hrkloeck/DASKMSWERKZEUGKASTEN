@@ -218,8 +218,9 @@ def main():
 
 
     # used for bookeeping
-    applied_new_flag = []
-    output_xdsl      = []
+    applied_new_flag     = []
+    not_applied_new_flag = []
+    output_xdsl          = []
     #
     for xds in xdsl:
 
@@ -291,6 +292,11 @@ def main():
             else:
                 if prtinfo:
                     print('NO time stamp found in FG MASK\n')
+
+                # bookkeeping 
+                #
+                not_applied_new_flag.append(time)
+
                 new_flags = flags
 
             
@@ -322,7 +328,7 @@ def main():
 
 
     if prtinfo:
-        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag))
+        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag),' missed flags ',len(not_applied_new_flag))
 
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
