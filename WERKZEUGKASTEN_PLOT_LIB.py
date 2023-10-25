@@ -270,11 +270,7 @@ def combine_averaged_data(dyn_specs,select_freq,select_time,select_spwd,print_in
 
 
 
-
-
-
-
-def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True,doticks=False):
+def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True,doticks=True):
 
                     #
                     # Plot waterfall spectrum 
