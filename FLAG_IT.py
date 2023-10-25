@@ -269,18 +269,26 @@ def main():
             if len(flag_mask.shape) == 3:
                 spwd_flag_mask = flag_mask
             else:
+
+                spwd_flag_mask = flag_mask[spwd_id]
+
                 if prtinfo:
                     print('Use mask for spwd: ',spwd_id)
-                spwd_flag_mask = flag_mask[spwd_id]
+                    print('mask shape       : ',spwd_flag_mask.shape)
+                    print('org flag shape   : ',xds.FLAG.dims)
+                    print('org flag shape   : ',xds.FLAG.shape)
+                    print('availible bsl    : ',len(sel_bsls))
+                    print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
 
             # search for the time in the flag mask
             #
             time_idx = np.where(timerange == time)
+
             if time_idx[0].size > 0:
                 if prtinfo:
                     print('Found time stamp in FG MASK\n')
 
-                new_flags           = da.zeros(xds.FLAG.shape,dtype=bool)                        
+                new_flags           = np.zeros(xds.FLAG.shape,dtype=bool)                        
 
                 if erase_flag == False:
                     new_flags[sel_bsls] = spwd_flag_mask[time_idx]
@@ -299,11 +307,10 @@ def main():
                 #
                 not_applied_new_flag.append(time)
 
-            
             # combine new flags and the pre-exsisting flags
             #
             if erase_flag:
-                updated_flags = da.logical_or(new_flags, new_flags)
+                updated_flags = da.logical_or(new_flags,new_flags)
             else:
                 if prtinfo:
                     print('Combine org and new flags\n')
@@ -328,7 +335,7 @@ def main():
 
 
     if prtinfo:
-        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag),' missed flags ',len(not_applied_new_flag))
+        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag),' missed flags ',len(not_applied_new_flag),'hhh',len(output_xdsl))
 
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
