@@ -154,8 +154,8 @@ def main():
             sys.exit(-1)
 
     data_type      = pickle_data['FGDATA']['data_type']       
-    flag_mask      = np.array(pickle_data['FGDATA']['flag_mask'])      
-    timerange      = np.array(pickle_data['FGDATA']['timerange'])
+    flag_mask      = da.array(pickle_data['FGDATA']['flag_mask'])      
+    timerange      = da.array(pickle_data['FGDATA']['timerange'])
     if doflagonbsls == True:
         doflagonbsls   = pickle_data['FGDATA']['flagonbsl']   
     bsls_ant_id    = pickle_data['FGDATA']['baselines_id'] 
@@ -267,13 +267,13 @@ def main():
             # this may need to be somewhere else
             #
             if len(flag_mask.shape) == 3:
-                spwd_flag_mask = flag_mask
+                spwd_flag_mask = da.array(flag_mask)
             else:
                 if prtinfo:
                     print('Use mask for spwd: ',spwd_id)
-                spwd_flag_mask = flag_mask[spwd_id]
+                spwd_flag_mask = da.array(flag_mask[spwd_id])
 
-            # 
+            # search for the time in the flag mask
             #
             time_idx = np.where(timerange == time)
             if time_idx[0].size > 0:
@@ -293,11 +293,11 @@ def main():
                 if prtinfo:
                     print('NO time stamp found in FG MASK\n')
 
+                new_flags = flags
+
                 # bookkeeping 
                 #
                 not_applied_new_flag.append(time)
-
-                new_flags = flags
 
             
             # combine new flags and the pre-exsisting flags
