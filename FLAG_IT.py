@@ -279,7 +279,7 @@ def main():
                     print('org flag shape   : ',xds.FLAG.dims)
                     print('org flag shape   : ',xds.FLAG.shape)
                     print('availible bsl    : ',sel_bsls.shape)
-                    print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
+                    #print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
 
             # search for the time in the flag mask
             #
