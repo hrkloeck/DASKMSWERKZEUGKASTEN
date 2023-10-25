@@ -84,6 +84,9 @@ def main():
     parser.add_option('--DOPLOTAVGSPECTRUM', dest='doavgspec', action='store_true', default=False,
                       help='produce an average spectrum')
 
+    parser.add_option('--DOPLOTNOMASKING', dest='dopltnomask', action='store_true', default=False,
+                      help='produce the plots using no mask')
+
     # flag the data
     parser.add_option('--DOFLAGDATA', dest='doflagthedata', action='store_true',default=False,
                       help='Do flag the data')
@@ -137,6 +140,8 @@ def main():
     dobslwfspec         = opts.dobslwfspec
     doavgspec           = opts.doavgspec
 
+    dopltnomask         = opts.dopltnomask
+    
     fgfilename          = opts.fgmaskfile
 
     #
@@ -335,8 +340,10 @@ def main():
                     flag_data[str(m)][sto]['fg_info']                    = f_mask_info[2]/f_mask_info[0]*100
                     flag_data[str(m)][sto]['final_mask']                 = final_mask
                 else:
-                    final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
-
+                    if dopltnomask:
+                        final_mask = RFIM.mask_true_false(dyn_spec_avmask,-1).astype(bool)
+                    else:
+                        final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
 
                 if len(fgfilename) > 0:
                     final_mask = fg_wf_mask[str(m)][sto]['final_mask']
@@ -357,7 +364,10 @@ def main():
 
                 # use a threshold to mask the data
                 #
-                nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=np.median(final_mask.std(axis=0)))
+                if dopltnomask:
+                    nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=-1)
+                else:
+                    nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=np.median(final_mask.std(axis=0)))
 
                 # mask spectrum
                 #

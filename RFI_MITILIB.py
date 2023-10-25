@@ -496,9 +496,12 @@ def mask_true_false(mask,threshold=0.01):
     """
     new_mask = deepcopy(mask)
     new_mask = np.zeros(np.array(mask).shape)    
-    select   = mask > threshold
 
-    new_mask[select] = 1.0
+    # switch to be used
+    #
+    if threshold > 0:
+        select   = mask > threshold
+        new_mask[select] = 1.0
 
     return new_mask.astype(bool)
 

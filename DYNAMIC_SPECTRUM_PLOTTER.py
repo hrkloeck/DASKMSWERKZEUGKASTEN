@@ -70,6 +70,9 @@ def main():
     parser.add_option('--DOPLOTAVGSPECTRUM', dest='doavgspec', action='store_true', default=False,
                       help='produce an average spectrum')
     
+    parser.add_option('--DOPLOTNOMASKING', dest='dopltnomask', action='store_true', default=False,
+                      help='produce the plots using no mask')
+
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
                       help='add file indicator in front of the file [defaut = PLT_]')
 
@@ -128,6 +131,7 @@ def main():
     scan_num            = opts.scan_num
     dobslwfspec         = opts.dobslwfspec
     doavgspec           = opts.doavgspec
+    dopltnomask         = opts.dopltnomask
     chnslide            = opts.chnslide
     select_bsl          = opts.select_bsl
     select_ant          = opts.select_ant
@@ -385,7 +389,7 @@ def main():
     select_time = []
     #
     
-    # this is the old one dealing with concat data of s0 and s4
+    # the commented out command is the old one dealing with concat data of s0 and s4
     # concat_data,concat_datastd,concat_data_flag,concat_freq,concat_time = INFMS.combine_averaged_data(dyn_specs,select_freq,select_time,select_spwd,print_info=True)
 
     concat_data,concat_datastd,concat_data_flag,concat_freq,concat_time,concat_freq_per_sw,concat_chan_per_sw \
@@ -410,8 +414,10 @@ def main():
             #
             threshold = np.median(dyn_spec_avmask.std(axis=0))
 
-            final_mask = mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
-
+            if dopltnomask:
+                final_mask = RFIM.mask_true_false(dyn_spec_avmask,-1)
+            else:
+                final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold)
 
             # masked the waterfall data
             #
@@ -429,7 +435,10 @@ def main():
 
             # use a threshold to mask the data
             #
-            nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=np.median(final_mask.std(axis=0)))
+            if dopltnomask:
+                nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=-1)
+            else:
+                nf_mask        = RFIM.mask_true_false(avg_final_mask,threshold=np.median(final_mask.std(axis=0)))
 
             # mask spectrum
             #
