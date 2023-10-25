@@ -64,6 +64,9 @@ def main():
     parser.add_option('--SCAN_NUMBER', dest='scan_num', default=-1,type=int,
                       help='select scan number [no default]. Note overwrites FIELD_ID.')
 
+    parser.add_option('--DOPLTSTDDATA', dest='doplotstddata', action='store_true', default=False,
+                      help='plot the stddata instead of the data')
+
     parser.add_option('--DOBSLWATERFALLSPEC', dest='dobslwfspec', action='store_true', default=False,
                       help='produce waterfall spectrum')
 
@@ -142,6 +145,7 @@ def main():
     select_spwd         = int(opts.select_spwd)
 
     dodatainfoutput     = opts.dodatainfoutput
+    doplotstddata       = opts.doplotstddata
 
     pltf_marker         = opts.pltf_marker
     showparameter       = opts.showparameter

@@ -264,6 +264,7 @@ def main():
                 sel_bsls  = np.ones(xds.ANTENNA1.shape,dtype=bool)
 
 
+            
             # this may need to be somewhere else
             #
             if len(flag_mask.shape) == 3:
@@ -277,7 +278,7 @@ def main():
                     print('mask shape       : ',spwd_flag_mask.shape)
                     print('org flag shape   : ',xds.FLAG.dims)
                     print('org flag shape   : ',xds.FLAG.shape)
-                    print('availible bsl    : ',len(sel_bsls))
+                    print('availible bsl    : ',sel_bsls.shape)
                     print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
 
             # search for the time in the flag mask
@@ -292,7 +293,7 @@ def main():
 
                 if erase_flag == False:
                     new_flags[sel_bsls] = spwd_flag_mask[time_idx]
-
+                    
                 # bookkeeping 
                 #
                 applied_new_flag.append(time)
