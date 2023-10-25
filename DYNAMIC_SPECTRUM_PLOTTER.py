@@ -100,7 +100,7 @@ def main():
     parser.add_option('--DO_SAVE_AVERAGE_DATA', dest='dodatainfoutput',type=str,default='',
                       help='Generate dump of the averaged data via pickle file.')
 
-    parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_true',default=False,
+    parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_false',default=True,
                       help='show progress bar ')
 
     parser.add_option('--DOPROGRESSBAR', dest='progbar', action='store_true',default=False,
