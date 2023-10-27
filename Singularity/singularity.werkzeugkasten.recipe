@@ -1,0 +1,165 @@
+Bootstrap: docker
+From: ubuntu:20.04
+
+
+%help
+    Singularity image containing softwares required to process MSGPS data.
+
+%environment
+    export threads=16
+    export DEBIAN_FRONTEND=noninteractive
+    export PYTHONPATH=/opt/meersoft/lib/python3.8/site-packages/
+    export LD_LIBRARY_PATH=/opt/meersoft/lib:/usr/local/lib/
+    export PATH=${PATH}:/opt/meersoft/bin
+    export NUMBA_CACHE_DIR=/tmp/
+
+
+%files
+    tricolour.yaml /opt/meersoft/yaml/
+    tricolour_oxkat.yaml /opt/meersoft/yaml/
+
+%post
+    # Install common dependencies
+    export DEBIAN_FRONTEND=noninteractive
+    #export PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION=python
+    export threads=16
+     
+   
+    apt-get update \
+    && apt-get --yes install --no-install-recommends \
+        ca-certificates \
+        gnupg \
+	gpg-agent \
+        wget \
+        build-essential \
+        gfortran \
+        python-is-python3 \
+        python3-pip \
+        python3-dev \
+        python3-setuptools \
+	python3-tk \
+	cmake \
+        libncurses5-dev \
+        libopenmpi-dev \
+        libreadline-dev \
+        libhdf5-dev \
+	libglib2.0-0 \
+        flex \
+	file \
+        bison \
+        libblas-dev \
+        libcfitsio-dev \
+        libfftw3-dev \
+        libgsl-dev \
+        liblapacke-dev \
+        wcslib-dev \
+	libboost-dev \
+	libboost-date-time-dev \
+	libboost-filesystem-dev \
+	libboost-program-options-dev \
+	libboost-system-dev \
+	libcfitsio-dev \
+        libboost-numpy-dev \
+	libboost-python-dev \
+        git \
+	libfuse2 \
+	fuse3 \
+	imagemagick \
+	xvfb \
+	libsnl-dev \
+	libcanberra-gtk-module \
+	libcanberra-gtk3-module \
+	curl \
+	nodejs \
+	casacore-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+
+    ##### Manually install boost
+    cd / \
+    && wget https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.bz2 \
+    && tar xvf boost_1_79_0.tar.bz2 \
+    && cd boost_1_79_0 \
+    && bash bootstrap.sh && ./b2 install \
+    && cd / && rm -r boost_1_79_0 boost_1_79_0.tar.bz2
+    
+    # Install standard python packages (note numpyencoder is new and not tested)
+    pip3 install -U pip
+    pip3 install -U numpy astropy aplpy ipython pylint astroquery numpyencoder
+    
+    # get dask-ms installed
+    #
+    # pip3 index versions xarray   # shows all the availible versions
+    #
+    # These version are needed for shadems to run
+    #
+    pip3 install numba==0.57.0
+    pip3 install tornado==6.1.
+    pip3 install datashader==0.13.0
+    pip3 install xarray==2023.1.0  # 2022.6.0
+    pip3 install dask[array]     # ==2023.1.0
+    pip3 install dask-ms[xarray] # ==0.2.15
+
+
+    # get shadems
+    #
+    pip3 install shadems -U
+
+    # ragavi
+    #
+    pip3 install ragavi
+
+    # shapely
+    #
+    pip3 install shapely
+
+    # pybdsf
+    #
+    pip3 install bdsf
+
+    # regions
+    #
+    pip3 install regions
+
+    # python-casacore
+    #
+    pip3 install python-casacore
+
+
+    # Install wsclean
+    #
+    cd / && git clone https://gitlab.com/aroffringa/wsclean.git \
+    && cd wsclean && git checkout v3.3 \
+    && mkdir build && cd build \
+    && export PYTHONPATH=/opt/meersoft/lib/python3.8/site-packages/ \
+    && cmake \
+       -DCMAKE_PREFIX_PATH=/opt/meersoft/ \
+       -DCMAKE_INSTALL_PREFIX=/opt/meersoft/ ../ \
+    && make -j $threads && make install \
+    && cd / && rm -rf wsclean
+    
+
+    # Download NRAO CASA
+    #
+    # https://casadocs.readthedocs.io/en/stable/notebooks/introduction.html
+    #
+    pip3 install casatools
+    pip3 install casatasks
+    # casaplotms does not work pip3 install casaplotms
+    pip3 install casaviewer
+    pip3 install casampi
+    pip3 install casashell
+    pip3 install casadata
+    pip3 install casaplotserver
+    pip3 install casatestutils
+    pip3 install casatablebrowser
+    pip3 install casalogger
+    pip3 install casafeather
+
+    #pip3 install casatelemetry==1.2.3 #DOES NOT EXSIST 25.04.2023
+    # this would show a possible version pip3 install casatelemetry==999  
+
+
+
+
+
