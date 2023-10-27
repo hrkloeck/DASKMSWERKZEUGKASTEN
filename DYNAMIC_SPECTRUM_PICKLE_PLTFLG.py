@@ -227,8 +227,6 @@ def main():
                 print('\n === You are using the FG pickle file ===\n')
                 sys.exit(-1)
 
-
-
         data_type      = pickle_data['WFDATA']['data_type']
         dyn_specs      = pickle_data['WFDATA']['dyn_specs']
         scan_num       = pickle_data['WFDATA']['scan_num']
@@ -271,8 +269,10 @@ def main():
                 print('Need to look at the data structure seems to be from multiple times')
                 sys.exit(-1)
 
+        # collect all info of the flagging 
+        #
         flag_data = {}
-
+        #
         if prtinfo:
 
                 if  dobslwfspec == True or doavgspec == True:
@@ -345,8 +345,11 @@ def main():
                     else:
                         final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
 
+                # if an imput FGmask exsists overwrite
                 if len(fgfilename) > 0:
                     final_mask = fg_wf_mask[str(m)][sto]['final_mask']
+
+
 
                 # masked the waterfall data
                 #
@@ -381,12 +384,13 @@ def main():
                 #
                 if dobslwfspec == True:
 
+                    plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                    WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
+
                     if doplotstddata:
                         plt_filename    =  pltf_marker +showparameter+'_STD_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                         WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
-                    else:
-                        plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                        WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
+
 
                 # SPECTRUM plot
                 #
@@ -400,12 +404,13 @@ def main():
                     #plt.plot(concat_freq[m][get_outer_bondaries[0]:get_outer_bondaries[1]],sm_data,'-r')
                     #plt.plot(np.ma.masked_array(concat_freq[m],nf_mask),np.ma.masked_array(avg_dynspec,nf_mask),'-r')
 
+                    plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                    WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+
                     if doplotstddata:
                         plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_STD_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                         WZKPL.spectrum_average(spectrum_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
-                    else:
-                        plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                        WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+
 
 
 
@@ -424,6 +429,7 @@ def main():
         merge_spwd_stokes     = []
         timerange_spwd_stokes = []
         for st in stokes:
+
             merge_spwd_stokes.append(flag_data[str(concat_index)][st]['mask_spwd'])
             timerange_spwd_stokes.append(flag_data[str(concat_index)][st]['fg_concat_time'])
 
@@ -473,6 +479,7 @@ def main():
         pickle_data['field']           = field
         pickle_data['MSFN']            = usedmsfile
         pickle_data['produced']        = str(now)
+
 
 
         picklename = cwd + pltf_marker +dosaveflagmask+'_pickle'

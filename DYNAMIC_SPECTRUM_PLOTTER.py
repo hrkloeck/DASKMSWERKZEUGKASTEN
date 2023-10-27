@@ -462,12 +462,13 @@ def main():
                 # print('\n=== Average Waterfall Spectrum plotting ===')
                 #
 
+                plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
+
                 if doplotstddata:
                     plt_filename    =  pltf_marker +showparameter+'_STD_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                     WZKPL.plot_waterfall_spec(dyn_spec_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
-                else:
-                    plt_filename    =  pltf_marker +showparameter+'_WATERFALL_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                    WZKPL.plot_waterfall_spec(dyn_spec_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig,doticks)
+
 
             # SPECTRUM plot
             #
@@ -475,13 +476,15 @@ def main():
 
                 #print('\n=== Spectrum plotting ===')
                 #
+
+                plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
+                WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+
                 if doplotstddata:
                     #
                     plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_STD_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
                     WZKPL.spectrum_average(spectrum_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
-                else:
-                    plt_filename    =  pltf_marker +showparameter+'_SPECTRUM_'+'SPWD_'+str(select_spwd)+'_SCAN_'+str(set_scan)+'_'+sto+'_'+str(m)
-                    WZKPL.spectrum_average(spectrum_masked,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type,showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
+
                     
 
     # --------------------------------------------------------------------------

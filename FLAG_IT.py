@@ -270,16 +270,16 @@ def main():
             if len(flag_mask.shape) == 3:
                 spwd_flag_mask = flag_mask
             else:
-
+                
                 spwd_flag_mask = flag_mask[spwd_id]
 
-                if prtinfo:
-                    print('Use mask for spwd: ',spwd_id)
-                    print('mask shape       : ',spwd_flag_mask.shape)
-                    print('org flag shape   : ',xds.FLAG.dims)
-                    print('org flag shape   : ',xds.FLAG.shape)
-                    print('availible bsl    : ',sel_bsls.shape)
-                    #print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
+            if prtinfo:
+                print('Use mask for spwd: ',spwd_id)
+                print('mask shape       : ',spwd_flag_mask.shape)
+                print('org flag shape   : ',xds.FLAG.dims)
+                print('org flag shape   : ',xds.FLAG.shape)
+                print('availible bsl    : ',sel_bsls.shape)
+                #print('select bsl       : ',np.cumsum(sel_bsls.as_dtype(int))[-1])
 
             # search for the time in the flag mask
             #
@@ -293,7 +293,7 @@ def main():
 
                 if erase_flag == False:
                     new_flags[sel_bsls] = spwd_flag_mask[time_idx]
-                    
+  
                 # bookkeeping 
                 #
                 applied_new_flag.append(time)
@@ -313,9 +313,10 @@ def main():
             if erase_flag:
                 updated_flags = da.logical_or(new_flags,new_flags)
             else:
+                updated_flags = da.logical_or(flags, new_flags)
                 if prtinfo:
                     print('Combine org and new flags\n')
-                updated_flags = da.logical_or(flags, new_flags)
+
 
             # Replace the existing FLAG data variable with the updated version.
             # Note that we specify the dimensions of the data variable in
@@ -335,8 +336,8 @@ def main():
     da.compute(writes)
 
 
-    if prtinfo:
-        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag),' missed flags ',len(not_applied_new_flag),'hhh',len(output_xdsl))
+    if prtinfo or len(not_applied_new_flag) > 0:
+        print('Availible time ',len(timerange),' applied FG ',len(applied_new_flag),' missed flags ',len(not_applied_new_flag))
 
     # --------------------------------------------------------------------------
     # --------------------------------------------------------------------------
