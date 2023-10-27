@@ -20,6 +20,8 @@ stuff from Simon Perkins
 Please have a look ['Singularity'](https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN/tree/main/Singularity)
 
 
+
+
 Obtain Information of your Observations 
 =============
 
@@ -206,7 +208,7 @@ Plot data versus time and model per basline (VPLOT)
 =============
 
 ```
-$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 VPLOT_DATA_MODEL.py --h
+singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/VPLOT_DATA_MODEL.py --h
 ```
 
 list of arguments
@@ -216,7 +218,7 @@ Options:
   -h, --help            show this help message and exit
   --MS_FILE=MSFILE      MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms
   --DATA_TYPE=DATACOLUMN
-                        which data column to use [defaul DATA]
+                        which data column to use [default DATA]
   --SHOW=SHOWPARAMETER  = Show the amplitude [AMP] or the [PHASE] [default is
                         AMP]
   --FIELD_ID=FIELD_ID   if MS contains muliple field define on field
@@ -243,7 +245,7 @@ Flag a dataset
 =============
 
 ```
-$ singularity exec --bind "$PWD:/data" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /data/FLAG_IT.py --h
+$ singularity exec --bind "$PWD:/work" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/FLAG_IT.py --h
 ```
 
 list of arguments
@@ -269,14 +271,39 @@ To flag a dataset you need to follow the procedure desriped below
 
 1) produce an average spectrum pickle file with DYNAMIC_SPECTRUM_PLOTTER.py using the setting 
     --DO_SAVE_AVERAGE_DATA=
+	
+   Note: in case you do not use the selection option the average is
+    base on all baselines (most flags but also the cleanest one)
+
+```
+$ singularity exec --bind ${PWD}:/work
+/PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
+/work/DYNAMIC_SPECTRUM_PLOTTER.py --MS_FILE=/work/YOURDATA.ms
+--WORK_DIR=/work/ --DOBSLWATERFALLSPEC --DO_SAVE_AVERAGE_DATA=AVERAGE_DATA
+```
 
 2) based on the averages a new fg mask can be produced via the DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py
     --DOFLAGDATA --DO_SAVE_FLAG_MASK=
 
+```
+$ singularity exec --bind ${PWD}:/work
+/PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
+DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py --AVG_FILE=/work/PLT_J0408-6545_AVERAGE_DATA_pickle.py --DOFLAGDATA --DOBSLWATERFALLSPEC --DO_SAVE_FLAG_MASK=FLAG_DATA --WORK_DIR=/work/
+
+```
+
 3) before you apply the new mask you may want to save the current
-flags  use FLAG_IT.py --CASAFGSAVE 
+flags use FLAG_IT.py --CASAFGSAVE 
 
 4) use that output to load into FLAG_IT.py as --FGMASK_FILE=
+
+```
+$ singularity exec --bind ${PWD}:/work
+/PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
+
+/work/FLAG_IT.py --MS_FILE=/work/YOURDATA.ms --WORK_DIR=/work/ --FGMASK_FILE=/work/DYNFLAG_J0408-6545_FLAG_DATA_pickle.py
+
+```
 
 
 
