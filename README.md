@@ -198,7 +198,7 @@ Options:
 ```
 
 
-![Example of a waterfall dynamic spectrum](DYNAMIC_SPECTRUM_WF_EXAMPLE.png)
+![Example of a waterfall dynamic spectrum](https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN/blob/main/Example_Images/DYNAMIC_SPECTRUM_WF_EXAMPLE.png)
 
 
 
