@@ -444,15 +444,19 @@ def mask_into_spwd(final_mask,concat_time,concat_freq,concat_freq_per_sw,concat_
     #
     spwds            = int(concat_freq_per_sw[-1] + 1)
 
+
     if spwds > 1:
         #
         # reshape the mask into spwd,time,frequncy
         #
         data_shape              = final_mask.shape
-        mask_spwd               = final_mask.reshape((spwds,data_shape[0],int(data_shape[1]/spwds)))
+        mask_spwd               = final_mask.reshape((data_shape[0],spwds,int(data_shape[1]/spwds)))
+        mask_spwd               = np.moveaxis(mask_spwd,0,1)
+        #
         concat_freq_per_sw_spwd = concat_freq_per_sw.reshape((spwds,int(data_shape[1]/spwds)))
         concat_chan_per_sw_spwd = concat_chan_per_sw.reshape((spwds,int(data_shape[1]/spwds)))
         concat_freq_spwd        = concat_freq.reshape((spwds,int(data_shape[1]/spwds)))
+
     else:
        mask_spwd               = final_mask 
        concat_freq_per_sw_spwd = concat_freq_per_sw
