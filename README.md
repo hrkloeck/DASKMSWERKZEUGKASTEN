@@ -17,27 +17,14 @@ stuff from Simon Perkins
 
 ## Installation 
 
-Maybe the easiest way to get going is to run a container based
-installation from the
-['stimela project'](https://github.com/ratt-ru/Stimela) from Sphe
-Makhathini. Of course you need to get
-['singularity'](https://sylabs.io/docs/#singularity) or
-['docker '](https://docs.docker.com/get-docker/) installed
-first on your machine.
-
-After that build an image, here e.g. we build a singularity image:
-
-```
-$ singularity pull docker://stimela/ragavi:1.7.3
-```
-
+Please have a look ['Singularity'](https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN/tree/main/Singularity)
 
 
 Obtain Information of your Observations 
 =============
 
 ```
-$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 GET_MS_INFO.py --h
+$ singularity exec --bind "$PWD" /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 GET_MS_INFO.py --h
 ```
 
 list of arguments
@@ -61,64 +48,97 @@ Lets assume your ragavi container sits in /SOFTWARE/CONTAINER and your
 MS file is in the current working directory
 
 ```
-$ singularity exec --bind "$PWD":/work /SOFTWARE/CONTAINERS/ragavi_1.2.6.sif python3 /work/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=J2339-5523_multispw_small.ms
+$ singularity exec --bind "$PWD":/work /SOFTWARE/CONTAINERS/WK.simg python3 /work/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=1678454471_sdp_l0.ms.hann.spw.split
 ```
 
-Example output:
+
+Example output (Note if the JSON option is used even more info is stored):
 
 ```
-telescope                   :   MeerKAT                                                                                                    
-project ID                  :   20200612-0003                                                                                              
-observation timerange (UTC) :   2020-06-14 05:51:27.925  ---  2020-06-14 06:09:59.455                                                      
-number of individual scans  :   1                                                                                                          
-number of antennas          :   59                                                                                                         
-antenna diameter        [m] :   [13.5]
-array type                  :   HOMOGENEOUS
-field of view  (FoV)  [deg] :   [ 1.46 , 1.58 ]
-baseline length         [m] :   [ 29.26 , 7697.58 ]
-angular resolution [arcsec] :   [ 7.69 , 8.35 ]
-imagesize           [pixel] :   2220.22
-cellsize     [arcsec/pixel] :   2.564174
-polarisation property       :   ['XX', 'YY']
-spectral windows     [SPWD] :   3
-total frequency range  [Hz] :   9.815865e+08   --   1.065180e+09
-center frequency       [Hz] :   1.023383e+09 
-total bandwidth        [Hz] :   8.359375e+07 
-total number of channels    :   201
-channels width         [Hz] :   [4.179688e+05 , 4.179688e+05 ]
-observed sources            :   ['J2339-5523']
-field id                    :   ['0']
-time per source         [s] :   [1111]
-integration time        [s] :   [ 8.0 , 8.0 ]
-image sensitivity      [Jy] :   [1.688879303107692e-05]
-baseline sensitivity   [Jy] :   [0.011645080590217273]
+telescope                      :   MeerKAT
+project ID                     :   20230209-0012
+observation timerange (UTC)    :   2023-03-10 13:28:46.988  ---  2023-03-10 15:23:19.607
+number of individual scans     :   18
+number of antennas             :   52
+antenna diameter        [m]    :   [13.5]
+array type                     :   HOMOGENEOUS
+field of view  (FoV)  [deg]    :   [ 1.09 , 1.58 ]
+baseline length         [m]    :   [ 29.26 , 7697.55 ]
+angular resolution [arcsec]    :   [ 2.88 , 4.16 ]
+imagesize           [pixel]    :   5910.14
+cellsize     [arcsec/pixel]    :   0.960535
+polarisation property          :   ['XX', 'XY', 'YX', 'YY']
+spectral windows     [SPWD]    :   16
+total frequency range  [Hz]    :   1.968750e+09   --   2.843536e+09
+center frequency       [Hz]    :   2.406143e+09 
+total bandwidth        [Hz]    :   8.747864e+08 
+total number of channels       :   4096
+channels width         [Hz]    :   [2.136230e+05 , 2.136230e+05 ]
+observed sources               :   ['J0521+1638', 'J0252-7104', 'J0413-8000', 'J0408-6545']
+field id                       :   ['0', '1', '2', '3']
+time per source         [s]    :   [777, 945, 4191, 478]
+integration time        [s]    :   [ 2.0 , 2.0 ]
+image sensitivity      [Jy]    :   [7.091437421061913e-06, 6.43026512980777e-06, 3.053415836789292e-06, 9.0412990848
+15918e-06]
+baseline sensitivity   [Jy]    :   [0.007191466759137397]
+antennas close to array center :   ['m029', 'm028', 'm026', 'm003', 'm027', 'm000']
+
 
 detailed frequency information
-        --------------
+
+      --------------
         SPWD_ID         : 0
-        frequencies     : 9.815865e+08  --  1.009172e+09
-        bandwidth       : 2.758594e+07
-        channels        : 67
-        channel width   : 4.179688e+05 , 4.179688e+05
+        frequencies     : 1.968750e+09  --  2.023224e+09
+        bandwidth       : 5.447388e+07
+        channels        : 256
+        channel range   : [0, 256]
+        channel width   : 2.136230e+05 , 2.136230e+05
         --------------
         SPWD_ID         : 1
-        frequencies     : 1.009590e+09  --  1.037176e+09
-        bandwidth       : 2.758594e+07
-        channels        : 67
-        channel width   : 4.179688e+05 , 4.179688e+05
+        frequencies     : 2.023438e+09  --  2.077911e+09
+        bandwidth       : 5.447388e+07
+        channels        : 256
+        channel range   : [256, 512]
+        channel width   : 2.136230e+05 , 2.136230e+05
         --------------
-        SPWD_ID         : 2
-        frequencies     : 1.037594e+09  --  1.065180e+09
-        bandwidth       : 2.758594e+07
-        channels        : 67
-        channel width   : 4.179688e+05 , 4.179688e+05
+
+...
+
+        --------------
+        SPWD_ID         : 15
+        frequencies     : 2.789062e+09  --  2.843536e+09
+        bandwidth       : 5.447388e+07
+        channels        : 256
+        channel range   : [3840, 4096]
+        channel width   : 2.136230e+05 , 2.136230e+05
 
 
 
 detailed source information
+
         --------------
-         J2339-5523 | SCAN_ID  12  |  2020-06-14 05:51:27.925 --- 2020-06-14 06:09:59.455
+         J0521+1638     angular distance to      J0252-7104      91.3201319121865  [deg]
+         J0521+1638     angular distance to      J0413-8000      97.05563497164333  [deg]
+         J0521+1638     angular distance to      J0408-6545      83.529236270583  [deg]
+         J0252-7104     angular distance to      J0413-8000      10.119502720097923  [deg]
+         J0252-7104     angular distance to      J0408-6545      8.693548534832816  [deg]
+         J0413-8000     angular distance to      J0408-6545      14.251582653311665  [deg]
         --------------
+
+
+
+
+detailed source information
+
+        --------------
+         J0521+1638 | SCAN_ID  2  |  2023-03-10 13:28:46.988 --- 2023-03-10 13:33:45.536
+         J0521+1638 | SCAN_ID  31  |  2023-03-10 15:15:20.727 --- 2023-03-10 15:23:19.607
+        --------------
+         J0252-7104 | SCAN_ID  4  |  2023-03-10 13:34:59.672 --- 2023-03-10 13:36:57.889
+         J0252-7104 | SCAN_ID  7  |  2023-03-10 13:47:41.070 --- 2023-03-10 13:49:41.291
+
+
+...
 
 ```
 
