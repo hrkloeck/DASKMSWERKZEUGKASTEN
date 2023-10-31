@@ -19,14 +19,18 @@ stuff from Simon Perkins
 
 Please have a look ['Singularity'](https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN/tree/main/Singularity)
 
+Once the singularity container is produced. Clone the
+DASKMSWERKZEUGKASTEN into your working directory, where your
+Measurement Set (MS) is present.
+
+git clone https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN.git
 
 
-
-Obtain Information of your Observations 
+## Obtain Information of your Observations 
 =============
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/GET_MS_INFO.py -h
+$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKWERKZEUGKASTEN/GET_MS_INFO.py -h
 ```
 
 list of arguments
@@ -50,7 +54,7 @@ Lets assume your ragavi container sits in /SOFTWARE/CONTAINER and your
 MS file is in the current working directory
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=/work/1678454471_sdp_l0.ms.hann.spw.split
+$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKWERKZEUGKASTEN/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=/work/1678454471_sdp_l0.ms.hann.spw.split
 ```
 
 
@@ -104,7 +108,7 @@ detailed frequency information
         channel width   : 2.136230e+05 , 2.136230e+05
         --------------
 
-...
+        ...
 
         --------------
         SPWD_ID         : 15
@@ -117,6 +121,24 @@ detailed frequency information
 
 
 detailed source information
+
+       --------------
+         J0521+1638 
+                         [RA, DEC] ['05h21m09.89s +16d38m22.1s'] 
+                         [RA, DEC] [80.29120833333333, 16.63947222222222] 
+                         [gl,gb]   [187.4049449769659, -11.343472072144888]
+         J0252-7104 
+                         [RA, DEC] ['02h52m46.15s -71d04m35.3s'] 
+                         [RA, DEC] [43.19229166666666, -71.07647222222222] 
+                         [gl,gb]   [290.01697438965937, -42.87928165462044]
+         J0413-8000 
+                         [RA, DEC] ['04h13m26.4s -80d00m00s'] 
+                         [RA, DEC] [63.36, -80.0] 
+                         [gl,gb]   [293.71889610733257, -33.18594156918596]
+         J0408-6545 
+                         [RA, DEC] ['04h08m20.38s -65d45m09.1s'] 
+                         [RA, DEC] [62.08491666666668, -65.75252777777777] 
+                         [gl,gb]   [278.6439190098787, -40.878622771911154]
 
         --------------
          J0521+1638     angular distance to      J0252-7104      91.3201319121865  [deg]
@@ -140,7 +162,10 @@ detailed source information
          J0252-7104 | SCAN_ID  7  |  2023-03-10 13:47:41.070 --- 2023-03-10 13:49:41.291
 
 
-...
+        ...
+
+	     J0408-6545 | SCAN_ID  29  |  2023-03-10 15:05:53.686 --- 2023-03-10 15:13:52.566
+        --------------
 
 ```
 
@@ -149,7 +174,7 @@ Obtain Spectra of your Observations
 =============
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DYNAMIC_SPECTRUM_PLOTTER.py -h
+$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PLOTTER.py -h
 ```
 
 list of arguments
@@ -208,7 +233,7 @@ Plot data versus time and model per basline (VPLOT)
 =============
 
 ```
-singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/VPLOT_DATA_MODEL.py --h
+singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKWERKZEUGKASTEN/VPLOT_DATA_MODEL.py --h
 ```
 
 list of arguments
@@ -245,7 +270,7 @@ Flag a dataset
 =============
 
 ```
-$ singularity exec --bind "$PWD:/work" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/FLAG_IT.py --h
+$ singularity exec --bind "$PWD:/work" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/DASKWERKZEUGKASTEN/FLAG_IT.py --h
 ```
 
 list of arguments
@@ -278,17 +303,17 @@ To flag a dataset you need to follow the procedure desriped below
 ```
 $ singularity exec --bind ${PWD}:/work
 /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
-/work/DYNAMIC_SPECTRUM_PLOTTER.py --MS_FILE=/work/YOURDATA.ms
+/work/DASKWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PLOTTER.py --MS_FILE=/work/YOURDATA.ms
 --WORK_DIR=/work/ --DOBSLWATERFALLSPEC --DO_SAVE_AVERAGE_DATA=AVERAGE_DATA
 ```
 
-2) based on the averages a new fg mask can be produced via the DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py
+2) based on the averages (std of the averages is actually used) a new fg mask can be produced via the DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py
     --DOFLAGDATA --DO_SAVE_FLAG_MASK=
 
 ```
 $ singularity exec --bind ${PWD}:/work
 /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
-DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py --AVG_FILE=/work/PLT_J0408-6545_AVERAGE_DATA_pickle.py --DOFLAGDATA --DOBSLWATERFALLSPEC --DO_SAVE_FLAG_MASK=FLAG_DATA --WORK_DIR=/work/
+/work/DASKWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py --AVG_FILE=/work/PLT_J0408-6545_AVERAGE_DATA_pickle.py --DOFLAGDATA --DOBSLWATERFALLSPEC --DO_SAVE_FLAG_MASK=FLAG_DATA --WORK_DIR=/work/
 
 ```
 
@@ -299,13 +324,12 @@ flags use FLAG_IT.py --CASAFGSAVE
 
 ```
 $ singularity exec --bind ${PWD}:/work
-/PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
-
-/work/FLAG_IT.py --MS_FILE=/work/YOURDATA.ms --WORK_DIR=/work/ --FGMASK_FILE=/work/DYNFLAG_J0408-6545_FLAG_DATA_pickle.py
+/PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKWERKZEUGKASTEN/FLAG_IT.py --MS_FILE=/work/YOURDATA.ms --WORK_DIR=/work/ --FGMASK_FILE=/work/DYNFLAG_J0408-6545_FLAG_DATA_pickle.py
 
 ```
 
 
+![Example of a waterfall dynamic spectrum](https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN/blob/main/Example_Images/DYNAMIC_SPECTRUM_WF_EXAMPLE.png)
 
 
 As a Note
