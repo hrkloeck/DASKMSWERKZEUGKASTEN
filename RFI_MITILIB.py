@@ -616,6 +616,7 @@ def find_CASA_logfile(checkdir='HOME',homdir=''):
 
     import os
     import datetime
+    import glob
 
     user_home_dir  = os.environ[checkdir]
     casa_log_files = sorted(glob.glob(user_home_dir+'/casa*log'), key=os.path.getmtime)
