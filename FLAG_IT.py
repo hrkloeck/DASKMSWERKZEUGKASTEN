@@ -204,7 +204,7 @@ def main():
         #
         msfile        = MSFN
 
-        casatask.flagdata(vis=msfile, mode='manual',flagbackup=False,spw=fg_line)
+        casatasks.flagdata(vis=msfile, mode='manual',flagbackup=False,spw=fg_line)
 
         # store casa log file to current directory 
         #
