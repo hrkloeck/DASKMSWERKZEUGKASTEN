@@ -421,11 +421,11 @@ def main():
         # do a flag on the complete mask in order to get channel ranges that are bad
         #
 
-        import matplotlib.pyplot as plt
-        import matplotlib as mpl
         concat_index          = 0   # just in case if data structure changes in the future
 
-        avg_freq_axis = concat_freq[m]/1E6
+        # get the freq info for CASA
+        #
+        avg_freq_axis         = concat_freq[m]/1E6
 
         avg_norm = 0
         for i, st in enumerate(stokes):
@@ -436,22 +436,6 @@ def main():
 
             else:
                 merged_masked += flag_data[str(concat_index)][st]['mask_spwd'].astype(int)
-
-                #print(merged_masked[200,:])
-                #print(i)
-
-                fig, ax = plt.subplots()
-                #
-                # https://matplotlib.org/stable/tutorials/colors/colormaps.html
-                #
-                cmap = mpl.cm.cubehelix
-                #cmap = mpl.cm.CMRmap
-                #cmap = mpl.cm.nipy_spectral
-                cmap.set_bad(color='black')                
-
-                #plt.imshow(merged_masked,origin='lower',interpolation='nearest',cmap=cmap)
-                #plt.show()
-
 
      
 
@@ -480,7 +464,6 @@ def main():
         fg_axis           = np.arange(len(fg_sum))
         complete_fgs      = fg_axis[select]
         complete_fgs_freq = avg_freq_axis[select]
-
 
         # build the segments of frequencies
         #
