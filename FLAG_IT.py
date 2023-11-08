@@ -43,7 +43,7 @@ def main():
     import dask.array as da
 
     import DASK_MS_WERKZEUGKASTEN as INFMS
-
+    import RFI_MITILIB as RFIM
 
     # argument parsing
     #
@@ -75,7 +75,7 @@ def main():
                       help='restore FG table in MS file (using casa flagmanager)')
 
     parser.add_option('--CASAFGSPEC', dest='casafgonspec', action='store_true',default=False,
-                      help='CASA flag using the original data with only one spwd')
+                      help='CASA flag using the pickle and original data with only one spwd')
 
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
@@ -117,7 +117,6 @@ def main():
         # save the current flag table
         #
         import casatasks
-        import CAL2GC_lib as CLIB
         #
         msfile        = MSFN
         casa_fg_table = casafgtabfile
@@ -133,7 +132,7 @@ def main():
 
         # store casa log file to current directory 
         #
-        current_casa_log = CLIB.find_CASA_logfile(checkdir='HOME',homdir='')
+        current_casa_log = RFIM.find_CASA_logfile(checkdir='HOME',homdir='')
         shutil.move(current_casa_log,cwd) 
 
         print('Used CASA flag manager to ',havedone,' ',casa_fg_table)
@@ -202,7 +201,6 @@ def main():
     if casafgonspec:
         #
         import casatasks
-        import CAL2GC_lib as CLIB
         #
         msfile        = MSFN
 
@@ -210,11 +208,12 @@ def main():
 
         # store casa log file to current directory 
         #
-        current_casa_log = CLIB.find_CASA_logfile(checkdir='HOME',homdir='')
+        current_casa_log = RFIM.find_CASA_logfile(checkdir='HOME',homdir='')
         shutil.move(current_casa_log,cwd) 
 
         print('\n\nApplied Spectrum channel flag using CASA flag with: ')
         print('\n\t swd=',fg_line)
+        print('\n\t swd=',fg_line_freq)
         sys.exit(-1)
 
     # ------------------------------------------------------------------------------

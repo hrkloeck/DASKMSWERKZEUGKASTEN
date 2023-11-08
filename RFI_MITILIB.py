@@ -610,5 +610,17 @@ def flag_impact(final_mask,inputmask):
     return f_mask_info
 
 
+def find_CASA_logfile(checkdir='HOME',homdir=''):
+    """
+    """
+
+    import os
+    import datetime
+
+    user_home_dir  = os.environ[checkdir]
+    casa_log_files = sorted(glob.glob(user_home_dir+'/casa*log'), key=os.path.getmtime)
+    latest_logfile = casa_log_files[-1]
+
+    return latest_logfile
 
 
