@@ -74,6 +74,9 @@ def main():
     parser.add_option('--CASAFGRESTORE', dest='docasarestorefg', action='store_true',default=False,
                       help='restore FG table in MS file (using casa flagmanager)')
 
+    parser.add_option('--CASAFGSPEC', dest='casafgonspec', action='store_true',default=False,
+                      help='CASA flag using the original data with only one spwd')
+
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
@@ -102,6 +105,7 @@ def main():
     casafgtabfile       = opts.casafgtabfile
     docasasafefg        = opts.docasasafefg
     docasarestorefg     = opts.docasarestorefg
+    casafgonspec        = opts.casafgonspec
     #
     erase_flag          = opts.erase_flag
     #
@@ -166,6 +170,9 @@ def main():
     source_name    = pickle_data['FGDATA']['source_name']
     field          = pickle_data['FGDATA']['field']
     FGMSFILE       = pickle_data['FGDATA']['MSFN']
+    fg_line        = pickle_data['FGDATA']['spwd0_fgline']
+    fg_line_freq   = pickle_data['FGDATA']['spwd0_fglineMHz']
+    fg_percentage  = pickle_data['FGDATA']['spwd0_fgpercent']
     produced       = pickle_data['FGDATA']['produced']
     # 
     # ------------------------------------------------------------------------------
@@ -184,6 +191,31 @@ def main():
             print('\n Caution the input MS-file ',MSFN,' does not match FG mask file origin.')
             sys.exit(-1)
 
+
+
+    # ------------------------------------------------------------------------------
+    #
+    #  APPLY THE SPECTRUM FLAG 
+    #
+    # this only works with single spectral windows
+    #
+    if casafgonspec:
+        #
+        import casatasks
+        import CAL2GC_lib as CLIB
+        #
+        msfile        = MSFN
+
+        casatask.flagdata(vis=msfile, mode='manual',flagbackup=False,spw=fg_line)
+
+        # store casa log file to current directory 
+        #
+        current_casa_log = CLIB.find_CASA_logfile(checkdir='HOME',homdir='')
+        shutil.move(current_casa_log,cwd) 
+
+        print('\n\nApplied Spectrum channel flag using CASA flag with: ')
+        print('\n\t swd=',fg_line)
+        sys.exit(-1)
 
     # ------------------------------------------------------------------------------
     #

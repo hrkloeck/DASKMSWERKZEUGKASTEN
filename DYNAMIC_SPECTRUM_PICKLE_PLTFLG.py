@@ -20,6 +20,7 @@
 #
 import sys
 import numpy as np
+from copy import deepcopy
 import matplotlib.pyplot as plt
 from datetime import datetime
 #
@@ -100,6 +101,9 @@ def main():
     parser.add_option('--PRE_FLAG_MASK', dest='fgmaskfile', type=str,default='',
                       help='pickle - file of the mask FG file')
 
+    parser.add_option('--PRECENTAGE', dest='percentage', type=float,default=-2.0,
+                      help='above the percentage level in time, flag entire channel [auto]')
+
     # some internal orga stuff
     parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_false',default=True,
                         help='show progress bar ')
@@ -109,7 +113,6 @@ def main():
 
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
                       help='add file indicator in front of the file [defaut = PLT_]')
-
 
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
@@ -139,6 +142,8 @@ def main():
 
     dobslwfspec         = opts.dobslwfspec
     doavgspec           = opts.doavgspec
+
+    percentage          = opts.percentage
 
     dopltnomask         = opts.dopltnomask
     
@@ -316,7 +321,6 @@ def main():
                     sigma          = 3
                     stats_type     = 'mean'
                     smooth_kernels = ['robx','roby','scharrx','scharry','sobelx','sobely','canny','prewittx','prewitty']
-                    percentage     = 50
                     #
                     final_mask  = RFIM.flag_data(datatoflag,dyn_spec_avmask,sigma,stats_type,percentage,smooth_kernels,threshold,eval(flagbyhand))
                     # ==============================
@@ -345,7 +349,7 @@ def main():
                     else:
                         final_mask = RFIM.mask_true_false(dyn_spec_avmask,threshold).astype(bool)
 
-                # if an imput FGmask exsists overwrite
+                # if an imput FG mask exsists overwrite
                 if len(fgfilename) > 0:
                     final_mask = fg_wf_mask[str(m)][sto]['final_mask']
 
@@ -412,6 +416,116 @@ def main():
                         WZKPL.spectrum_average(spectrum_masked_std,np.array(concat_time[m]),np.array(concat_freq[m]),select_spwd,data_type+'STD',showparameter,sto,source_name,plt_filename,cwd,dofigureswap,dopltfig)
 
 
+    if doflagthedata:
+        #
+        # do a flag on the complete mask in order to get channel ranges that are bad
+        #
+
+        import matplotlib.pyplot as plt
+        import matplotlib as mpl
+        concat_index          = 0   # just in case if data structure changes in the future
+
+        avg_freq_axis = concat_freq[m]/1E6
+
+        avg_norm = 0
+        for i, st in enumerate(stokes):
+            avg_norm += 1
+            if i == 0:
+                merged_masked = deepcopy(flag_data[str(concat_index)][st]['mask_spwd'].astype(int))
+
+
+            else:
+                merged_masked += flag_data[str(concat_index)][st]['mask_spwd'].astype(int)
+
+                #print(merged_masked[200,:])
+                #print(i)
+
+                fig, ax = plt.subplots()
+                #
+                # https://matplotlib.org/stable/tutorials/colors/colormaps.html
+                #
+                cmap = mpl.cm.cubehelix
+                #cmap = mpl.cm.CMRmap
+                #cmap = mpl.cm.nipy_spectral
+                cmap.set_bad(color='black')                
+
+                #plt.imshow(merged_masked,origin='lower',interpolation='nearest',cmap=cmap)
+                #plt.show()
+
+
+     
+
+        # Normalise the average mask
+        #
+        merged_masked = merged_masked/avg_norm
+
+
+        # sum up on the flags versus frequency (summed over time) 
+        #
+        axis = 0 
+        max_fg            = merged_masked.shape[axis]
+        fg_sum            = merged_masked.sum(axis=axis)/max_fg
+        #
+        # do thresholding 
+        #
+        #
+        if percentage < 0:
+            stats_type = 'mean'
+            cleanup_fg_sum = fg_sum < 0.95
+            fgsum_stats    = RFIM.data_stats(fg_sum[cleanup_fg_sum],stats_type)
+            new_percentage = fgsum_stats[0] + np.abs(percentage) * fgsum_stats[1]
+            percentage     = new_percentage * 100.
+
+        select            = fg_sum >= percentage/100.
+        fg_axis           = np.arange(len(fg_sum))
+        complete_fgs      = fg_axis[select]
+        complete_fgs_freq = avg_freq_axis[select]
+
+
+        # build the segments of frequencies
+        #
+        segmarray      = []
+        segmarray_freq = []
+        subarray       = []
+        subarray_freq  = []
+        #
+        for i in range(len(complete_fgs)):
+            subarray.append(complete_fgs[i])
+            subarray_freq.append(complete_fgs_freq[i])
+
+            if i <= len(complete_fgs)-2:
+                if (complete_fgs[i] - complete_fgs[i+1]) != -1:
+                    segmarray.append(subarray)
+                    segmarray_freq.append(subarray_freq)
+                    subarray      = []
+                    subarray_freq = []
+
+        segmarray.append(subarray)
+        segmarray_freq.append(subarray_freq)
+
+        
+        #fg_line = 'spwd=\''
+        fg_line = '\''
+        for i, s in enumerate(segmarray):
+            if len(s) > 1:
+                fg_line += '0:'+str(s[0])+'~'+str(s[-1])
+            else:
+                fg_line += '0:'+str(s[0])+'~'+str(s[0])
+            if i < len(segmarray)-1:
+                fg_line += ','
+            else:
+                fg_line += '\''
+
+        fg_line_freq = '\''
+        for i, s in enumerate(segmarray_freq):
+            if len(s) > 1:
+                fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[-1])))+'MHz'
+            else:
+                fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[0])))+'MHz'
+            if i < len(segmarray)-1:
+                fg_line_freq += ','
+            else:
+                fg_line_freq += '\''
 
 
     # save the masked file
@@ -478,8 +592,10 @@ def main():
         pickle_data['source_name']     = source_name
         pickle_data['field']           = field
         pickle_data['MSFN']            = usedmsfile
+        pickle_data['spwd0_fgline']    = fg_line
+        pickle_data['spwd0_fglineMHz'] = fg_line_freq
+        pickle_data['spwd0_fgpercent'] = percentage
         pickle_data['produced']        = str(now)
-
 
 
         picklename = cwd + pltf_marker +dosaveflagmask+'_pickle'

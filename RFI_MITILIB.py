@@ -88,10 +88,17 @@ def complete_fg_mask(mask,axis=0,percentage=0,complete_boundary=9):
     assuming that True (masked) is bad data
     """
 
-    new_mask   = deepcopy(mask.astype(int))
+    new_mask     = deepcopy(mask.astype(int))
 
-    max_fg     = new_mask.shape[axis]
-    fg_sum     = mask.sum(axis=axis)/max_fg
+    max_fg       = new_mask.shape[axis]
+    fg_sum       = mask.sum(axis=axis)/max_fg
+
+    if percentage < 0:
+        stats_type = 'mean'
+        cleanup_fg_sum = fg_sum < 0.95
+        fgsum_stats    = data_stats(fg_sum[cleanup_fg_sum],stats_type)
+        new_percentage = fgsum_stats[0] + np.abs(percentage) * fgsum_stats[1]
+        percentage     = new_percentage*100.
 
     select       = fg_sum >= percentage/100.
     fg_axis      = np.arange(len(fg_sum))

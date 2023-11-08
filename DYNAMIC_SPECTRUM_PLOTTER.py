@@ -116,7 +116,7 @@ def main():
                       help='Plot Figure instead of printing.')
 
     parser.add_option('--DONOTICKS', dest='doticks', action='store_false',default=True,
-                        help='show progress bar ')
+                        help='show pixel instead of time ticks (good for hand flag)')
 
     # ----
 
