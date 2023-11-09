@@ -1,0 +1,13 @@
+strategies:
+    -
+        name: background_static_mask
+        task: apply_static_mask
+        kwargs:
+            accumulation_mode: "or"
+            uvrange: ""
+    -
+        name: flag_autos
+        task: flag_autos
+    -
+        name: combine_with_input_flags
+        task: combine_with_input_flags
