@@ -437,78 +437,88 @@ def main():
             else:
                 merged_masked += flag_data[str(concat_index)][st]['mask_spwd'].astype(int)
 
-     
-
-        # Normalise the average mask
-        #
-        merged_masked = merged_masked/avg_norm
 
 
-        # sum up on the flags versus frequency (summed over time) 
-        #
-        axis = 0 
-        max_fg            = merged_masked.shape[axis]
-        fg_sum            = merged_masked.sum(axis=axis)/max_fg
-        #
-        # do thresholding 
-        #
-        #
-        if percentage < 0:
-            stats_type = 'mean'
-            cleanup_fg_sum = fg_sum < 0.95
-            fgsum_stats    = RFIM.data_stats(fg_sum[cleanup_fg_sum],stats_type)
-            new_percentage = fgsum_stats[0] + np.abs(percentage) * fgsum_stats[1]
-            percentage     = new_percentage * 100.
+        if len(merged_masked.shape) == 3:
 
-        select            = fg_sum >= percentage/100.
-        fg_axis           = np.arange(len(fg_sum))
-        complete_fgs      = fg_axis[select]
-        complete_fgs_freq = avg_freq_axis[select]
+            spwds        = merged_masked.shape[0]
+            freq_in_spwd = concat_freq[m].reshape((merged_masked.shape[0],merged_masked.shape[2]))
 
-        # build the segments of frequencies
-        #
-        segmarray      = []
-        segmarray_freq = []
-        subarray       = []
-        subarray_freq  = []
-        #
-        for i in range(len(complete_fgs)):
-            subarray.append(complete_fgs[i])
-            subarray_freq.append(complete_fgs_freq[i])
+            fg_line = '\''
+            fg_line_freq = '\''
 
-            if i <= len(complete_fgs)-2:
-                if (complete_fgs[i] - complete_fgs[i+1]) != -1:
-                    segmarray.append(subarray)
-                    segmarray_freq.append(subarray_freq)
-                    subarray      = []
-                    subarray_freq = []
+            for spw in range(spwds):
 
-        segmarray.append(subarray)
-        segmarray_freq.append(subarray_freq)
+                # Normalise the average mask
+                #
+                avg_merged_masked = merged_masked[spw]/avg_norm
+                freqs_tospwd      = freq_in_spwd[spw]/1E6         # get into MHz 
 
-        
-        #fg_line = 'spwd=\''
-        fg_line = '\''
-        for i, s in enumerate(segmarray):
-            if len(s) > 1:
-                fg_line += '0:'+str(s[0])+'~'+str(s[-1])
-            else:
-                fg_line += '0:'+str(s[0])+'~'+str(s[0])
-            if i < len(segmarray)-1:
-                fg_line += ','
-            else:
-                fg_line += '\''
+                # get it sorted
+                #
+                segmarray,segmarray_freq = RFIM.complete_fg_spectrum(avg_merged_masked,freqs_tospwd,percentage,stats_type='mean')
 
-        fg_line_freq = '\''
-        for i, s in enumerate(segmarray_freq):
-            if len(s) > 1:
-                fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[-1])))+'MHz'
-            else:
-                fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[0])))+'MHz'
-            if i < len(segmarray)-1:
-                fg_line_freq += ','
-            else:
-                fg_line_freq += '\''
+                # produce casa output
+                #
+                for i, s in enumerate(segmarray):
+                    if len(s) > 1:
+                        fg_line += str(spw)+':'+str(s[0])+'~'+str(s[-1])
+                    else:
+                        fg_line += str(spw)+':'+str(s[0])+'~'+str(s[0])
+                    if i < len(segmarray)-1:
+                        fg_line += ','
+                    else:
+                        fg_line += '\''
+
+                for i, s in enumerate(segmarray_freq):
+                    if len(s) > 1:
+                        fg_line_freq += str(spw)+':'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[-1])))+'MHz'
+                    else:
+                        fg_line_freq += str(spw)+':'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[0])))+'MHz'
+                    if i < len(segmarray)-1:
+                        fg_line_freq += ','
+                    else:
+                        fg_line_freq += '\''
+
+
+        else:
+
+
+            # Normalise the average mask
+            #
+            merged_masked = merged_masked/avg_norm
+
+            # get it sorted
+            #
+            segmarray,segmarray_freq = RFIM.complete_fg_spectrum(merged_masked,avg_freq_axis,percentage,stats_type='mean')
+
+            # produce casa output
+            #
+            fg_line = '\''
+            for i, s in enumerate(segmarray):
+                if len(s) > 1:
+                    fg_line += '0:'+str(s[0])+'~'+str(s[-1])
+                else:
+                    fg_line += '0:'+str(s[0])+'~'+str(s[0])
+                if i < len(segmarray)-1:
+                    fg_line += ','
+                else:
+                    fg_line += '\''
+
+            fg_line_freq = '\''
+            for i, s in enumerate(segmarray_freq):
+                if len(s) > 1:
+                    fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[-1])))+'MHz'
+                else:
+                    fg_line_freq += '0:'+str(int(np.floor(s[0])))+'~'+str(int(np.ceil(s[0])))+'MHz'
+                if i < len(segmarray)-1:
+                    fg_line_freq += ','
+                else:
+                    fg_line_freq += '\''
+
+
+
+
 
 
     # save the masked file

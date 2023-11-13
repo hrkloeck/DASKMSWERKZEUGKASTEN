@@ -77,6 +77,57 @@ def boundary_mask_data(data,reference_data,sigma,stats_type='mean',do_info=False
     return mask.astype(bool)
 
 
+def complete_fg_spectrum(merged_masked,avg_freq_axis,percentage,stats_type='mean'):
+    """
+    based on a mask a spectrum will be generated and channels
+    above a certain threshold will be masked as bad
+    
+    """
+
+    # sum up on the flags versus frequency (summed over time) 
+    #
+    axis = 0 
+    max_fg            = merged_masked.shape[axis]
+    fg_sum            = merged_masked.sum(axis=axis)/max_fg
+    #
+    # do thresholding 
+    #
+    #
+    if percentage < 0:
+        cleanup_fg_sum = fg_sum < 0.95
+        fgsum_stats    = data_stats(fg_sum[cleanup_fg_sum],stats_type)
+        new_percentage = fgsum_stats[0] + np.abs(percentage) * fgsum_stats[1]
+        percentage     = new_percentage * 100.
+
+    select            = fg_sum >= percentage/100.
+    fg_axis           = np.arange(len(fg_sum))
+    complete_fgs      = fg_axis[select]
+    complete_fgs_freq = avg_freq_axis[select]
+
+    # build the segments of frequencies
+    #
+    segmarray      = []
+    segmarray_freq = []
+    subarray       = []
+    subarray_freq  = []
+    #
+    for i in range(len(complete_fgs)):
+        subarray.append(complete_fgs[i])
+        subarray_freq.append(complete_fgs_freq[i])
+
+        if i <= len(complete_fgs)-2:
+            if (complete_fgs[i] - complete_fgs[i+1]) != -1:
+                segmarray.append(subarray)
+                segmarray_freq.append(subarray_freq)
+                subarray      = []
+                subarray_freq = []
+
+    segmarray.append(subarray)
+    segmarray_freq.append(subarray_freq)
+
+
+    return segmarray,segmarray_freq
+
 
 def complete_fg_mask(mask,axis=0,percentage=0,complete_boundary=9):
     """
