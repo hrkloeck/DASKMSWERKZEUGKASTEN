@@ -205,13 +205,13 @@ def main():
 
         if prtinfo:
             print('\n === FLAGER INPUT === ')
-            print('- use ',fgfilename,' for flagging ')
-            print('- produced     ',produced_m)
-            print('- used MS File ',FGMSFILE_m)
-            print('- flag field   ',field_m)
-            print('- flag source  ',source_name_m)
-            print('- Stokes       ',stokes_m)
-            print('- flag on baseline selection ',doflagonbsls_m)
+            print('\t- use ',fgfilename,' for flagging ')
+            print('\t- produced     ',produced_m)
+            print('\t- used MS File ',FGMSFILE_m)
+            print('\t- flag field   ',field_m)
+            print('\t- flag source  ',source_name_m)
+            print('\t- Stokes       ',stokes_m)
+            print('\t- flag on baseline selection ',doflagonbsls_m)
 
         # 
         # ------------------------------------------------------------------------------
@@ -244,6 +244,16 @@ def main():
         bsls_ant_name  = pickle_data['WFDATA']['baselines_name']
         usedmsfile     = pickle_data['WFDATA']['MSFN']
         produced       = pickle_data['WFDATA']['produced']
+
+        if prtinfo:
+            print('\n === Average INPUT === ')
+            print('\t- use ',filename,' for flagging ')
+            print('\t- produced     ',produced)
+            print('\t- used MS File ',usedmsfile)
+            print('\t- flag field   ',field)
+            print('\t- flag source  ',source_name)
+            print('\t- Stokes       ',stokes)
+
         
         select_freq    = []
         select_time    = []
