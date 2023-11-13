@@ -410,7 +410,7 @@ def plot_waterfall_spec(avg_dynspec,sel_time_range,frequency,select_spwd,data_ty
 
 
 
-def spectrum_average(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True):
+def spectrum_average(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,showparameter,stokes,source_name,plt_filename,cwd='',dofigureswap=False,doplt=True,plt_threshold=0):
 
 
             # figure setup 
@@ -423,18 +423,27 @@ def spectrum_average(avg_dynspec,sel_time_range,frequency,select_spwd,data_type,
             #
             plt.rcParams['figure.figsize'] = im_size
 
+
+            spectrum_data_channels = np.arange(len(avg_dynspec))
+            spectrum_data          = avg_dynspec
+
+            # select data on plt threshold (exclude fg data)
+            #
+            pltseldata             = spectrum_data > plt_threshold
+            spectrum_data_channels = spectrum_data_channels[pltseldata]
+            spectrum_data          = spectrum_data[pltseldata]
+
+
             # plt filename 
             #
             pltname =  cwd + plt_filename+'.png'
 
-
             #
             fig, ax = plt.subplots()
 
-
             # spectrum 
             #
-            plt.scatter(np.arange(len(avg_dynspec)),avg_dynspec)
+            plt.scatter(spectrum_data_channels,spectrum_data)
 
     
             # title
