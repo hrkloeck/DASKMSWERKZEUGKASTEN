@@ -528,6 +528,11 @@ def main():
 
 
 
+        if prtinfo:
+            print('\n=== Total SPECTRUM Flags ===\n')
+            print('\t- CASA flags [channel]  : ',fg_line,'\n')
+            print('\t- CASA flags [Frequency]: ',fg_line_freq,'\n')
+            print('\n\t note it is not nessesary to use CASA!\n')
 
 
 
