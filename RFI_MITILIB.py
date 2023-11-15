@@ -661,7 +661,7 @@ def flag_impact(final_mask,inputmask):
     return f_mask_info
 
 
-def find_CASA_logfile(checkdir='HOME',homdir=''):
+def find_CASA_logfile(checkdir='HOME',homedir=''):
     """
     """
 
