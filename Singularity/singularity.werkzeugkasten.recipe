@@ -121,6 +121,10 @@ From: ubuntu:20.04
     #
     pip3 install regions
 
+    # katbeam 
+    #
+    pip3 install katbeam
+
     # python-casacore
     #
     pip3 install python-casacore
