@@ -44,8 +44,8 @@ def main():
     parser.add_option('--MS_FILE', dest='msfile', type=str,
                       help='MS - file name e.g. 1491291289.1ghz.1.1ghz.4hrs.ms')
 
-    parser.add_option('--DATA_TYPE', dest='datacolumn', default='DATA',type=str,
-                      help='which data column to use [defaul DATA]')
+    parser.add_option('--DATA_TYPE', dest='datacolumn', default='CORRECTED_DATA',type=str,
+                          help='which data column to use e.g. DATA [default CORRECTED_DATA]')
 
     parser.add_option('--SHOW', dest='showparameter', default='AMP',type=str,
                       help='= Show the amplitude [AMP] or the [PHASE] [default is AMP]')
@@ -74,12 +74,17 @@ def main():
     parser.add_option('--PLOTFILEMARKER', dest='pltf_marker', default='PLT_',type=str,
                       help='add file indicator in front of the file [defaut = PLT_]')
 
+    parser.add_option('--SWAPFIGURESIZE', dest='figureswap', action='store_false',default=True,
+                        help='show progress bar ')
+
     parser.add_option('--DONOTSORTUVDIS', dest='dosortuvdis', action='store_false', default=True,
                       help='use original sequence of baselines. [default sort versus UV-distance ]')
 
     parser.add_option('--DOPROGRESSBAR', dest='progbar', action='store_true',default=False,
                       help='show progress bar ')
 
+    parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
+                      help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
     # Check the statistics of the data set
     #
@@ -109,12 +114,14 @@ def main():
     doshowprogressbar   = opts.progbar
     pltf_marker         = opts.pltf_marker
 
-
+    dofigureswap        = opts.figureswap
     chnslide            = opts.chnslide
     select_bsl          = opts.select_bsl
     select_ant          = opts.select_ant
     select_uvdis        = opts.select_uvdis    
     select_spwd         = int(opts.select_spwd)
+
+    cwd                 = opts.cwd        # used to write out information us only for container
 
     dosort_versus_uvdis = opts.dosortuvdis    
     # ------------------------------------------------------------------------------
@@ -467,68 +474,72 @@ def main():
                 data_versus_time   = stats_info[bsl_idx][stokes[polr]]['DATA_PHASE_time']
                 model_versus_time  = stats_info[bsl_idx][stokes[polr]]['MODEL_PHASE_time']
 
-            if np.isnan(data_versus_time[0]) == False:
 
 
-                # convert the Julian time 
-                #
-                time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
+            # old commented it out if np.isnan(data_versus_time[0]) == False:
 
-                # define the number of tick labels in time 
-                #
-                if len(sel_time_range) > 100:
-                    nth_y = 10
-                else:
-                    nth_y = 5
+            # convert the Julian time 
+            #
+            time_iso = Time(sel_time_range/(24.*3600.),scale='utc',format='mjd').ymdhms
 
-                every_nth_y = int(len(sel_time_range)/nth_y)
-                time_plt_axis_labels = []
-                time_plt_axis_ticks  = []
-                for i in range(len(time_iso)):
-                    if i % every_nth_y == 0:
-                        sec = int(time_iso[i][5])
-                        plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
-                        time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
-                        # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
-                        #time_plt_axis_ticks.append(i)
-                        time_plt_axis_ticks.append(sel_time_range[i])
+            # define the number of tick labels in time 
+            #
+            if len(sel_time_range) > 100:
+                nth_y = 10
+            else:
+                nth_y = 5
+
+            every_nth_y = int(len(sel_time_range)/nth_y)
+            time_plt_axis_labels = []
+            time_plt_axis_ticks  = []
+            for i in range(len(time_iso)):
+                if i % every_nth_y == 0:
+                    sec = int(time_iso[i][5])
+                    plt_time = str(time_iso[i][0])+'-'+str(time_iso[i][1])+'-'+str(time_iso[i][2])+' '+str(time_iso[i][3])+':'+str(time_iso[i][4])+':'+str(sec)
+                    time_plt_axis_labels.append(datetime.strptime(plt_time,'%Y-%m-%d %H:%M:%S'))
+                    # https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+                    #time_plt_axis_ticks.append(i)
+                    time_plt_axis_ticks.append(sel_time_range[i])
 
 
-                pltname = pltf_marker +showparameter+'_VPLOT_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
+            pltname = cwd + pltf_marker +showparameter+'_VPLOT_'+'SPWD_'+str(select_spwd)+'_'+ms_bsls_antname[bsl_idx][0]+'_'+ms_bsls_antname[bsl_idx][1]+'_'+stokes[polr]+'.png'
 
-                # figure setup 
-                #
-                if len(sel_time_range) > 100:
-                    im_size  = (8.27, 11.69)       # A4 portrait
-                else:
+            # figure setup 
+            #
+            # default is landscape
+            #
+            if dofigureswap:
                     im_size  = (8.27, 11.69)[::-1]  # A4 landscape
-                plt.rcParams['figure.figsize'] = im_size
+            else:
+                    im_size  = (8.27, 11.69)       # A4 portrait
+
+            plt.rcParams['figure.figsize'] = im_size
 
 
-                fig, ax = plt.subplots()
+            fig, ax = plt.subplots()
 
 
 
-                ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
+            ax.set_title(source_name+' '+showparameter+', '+str(ms_bsls_antname[bsl_idx])+', corr '+stokes[polr]+', spwd '+str(select_spwd))
 
-                plt.scatter(sel_time_range,data_versus_time)
-                if data_versus_time.shape == model_versus_time.shape:
-                    plt.plot(sel_time_range,model_versus_time,color='red')
+            plt.scatter(sel_time_range,data_versus_time)
+            if data_versus_time.shape == model_versus_time.shape:
+                plt.plot(sel_time_range,model_versus_time,color='red')
 
-                #ax.set_xlabel('time')
-                ax.xaxis_date()
-                #ax.xaxis.set_tick_params(which='minor', bottom=False)
-                ax.set_xticks(time_plt_axis_ticks)
-                ax.set_xticklabels(time_plt_axis_labels,size=8)
-                ax.xaxis.set_tick_params(which="major", rotation=90)
+            #ax.set_xlabel('time')
+            ax.xaxis_date()
+            #ax.xaxis.set_tick_params(which='minor', bottom=False)
+            ax.set_xticks(time_plt_axis_ticks)
+            ax.set_xticklabels(time_plt_axis_labels,size=8)
+            ax.xaxis.set_tick_params(which="major", rotation=90)
 
-                if showparameter == 'AMP':
-                    ax.set_ylabel(showparameter.lower()+' [Jy]')
-                else:
-                    ax.set_ylabel(showparameter.lower()+' [deg]')
+            if showparameter == 'AMP':
+                ax.set_ylabel(showparameter.lower()+' [Jy]')
+            else:
+                ax.set_ylabel(showparameter.lower()+' [deg]')
 
-                plt.savefig(pltname)
-                plt.close()
+            plt.savefig(pltname)
+            plt.close()
                     
 
 
