@@ -86,12 +86,6 @@ def main():
     parser.add_option('--WORK_DIR', dest='cwd', default='',type=str,
                       help='Points to the working directory if output is produced (e.g. usefull for containers)')
 
-    # Check the statistics of the data set
-    #
-    #dostatsmeasure    =   'datamean' #'maxdiff' #'sumdiffsquare'
-
-                          # for data and model:  'sumdiffsquare','meandiff', 'maxdiff', 'kurtosisdiff', 'skewnessdiff'
-                          # for data only:  'datamean','datamin','datamax','datakurtosis','dataskewness'
 
 
     # ----

@@ -169,8 +169,8 @@ def main():
     source_name    = pickle_data['FGDATA']['source_name']
     field          = pickle_data['FGDATA']['field']
     FGMSFILE       = pickle_data['FGDATA']['MSFN']
-    fg_line        = pickle_data['FGDATA']['spwd0_fgline']
-    fg_line_freq   = pickle_data['FGDATA']['spwd0_fglineMHz']
+    fg_line        = pickle_data['FGDATA']['spwd0_fgline'][1:-1]
+    fg_line_freq   = pickle_data['FGDATA']['spwd0_fglineMHz'][1:-1]
     fg_percentage  = pickle_data['FGDATA']['spwd0_fgpercent']
     produced       = pickle_data['FGDATA']['produced']
     # 
