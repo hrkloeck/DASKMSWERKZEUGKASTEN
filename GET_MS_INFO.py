@@ -427,7 +427,7 @@ def main():
                         print('\t',so,'| SCAN_ID ',msource_info[so]['SCAN_ID'][sp],' | ',time_low_str,'---',time_high_str)
 
                     for plts in planets:
-                        factor = 1
+                        factor = 3
                         plts_separation = INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][0],antinfo_pos[3]) 
                         if plts_separation < factor * max(FOV_calc):
                             print('\t\t',plts,'\t in distance to pointing centre [deg]', np.round(plts_separation,3))
