@@ -432,7 +432,7 @@ def main():
                                                INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][1],antinfo_pos[3])] 
 
                         if min(plts_separation) < factor * max(FOV_calc):
-                            print('\t\t',plts,'\t in distance to pointing centre [deg]', np.round(plts_separation,3))
+                            print('\t\t',plts,'\t in distance to pointing centre [deg]', np.round(min(plts_separation),3))
                             caution_plant.append([plts,min(plts_separation)])
 
                     scan_ids.append(int(msource_info[so]['SCAN_ID'][sp]))
