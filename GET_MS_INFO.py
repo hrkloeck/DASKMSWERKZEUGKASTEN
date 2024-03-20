@@ -428,10 +428,12 @@ def main():
 
                     for plts in planets:
                         factor = 3
-                        plts_separation = INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][0],antinfo_pos[3]) 
-                        if plts_separation < factor * max(FOV_calc):
+                        plts_separation = [INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][0],antinfo_pos[3]),
+                                               INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][1],antinfo_pos[3])] 
+
+                        if min(plts_separation) < factor * max(FOV_calc):
                             print('\t\t',plts,'\t in distance to pointing centre [deg]', np.round(plts_separation,3))
-                            caution_plant.append([plts,plts_separation])
+                            caution_plant.append([plts,min(plts_separation)])
 
                     scan_ids.append(int(msource_info[so]['SCAN_ID'][sp]))
                     scan_times.append([time_low_str,time_high_str])
