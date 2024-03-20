@@ -186,7 +186,6 @@ def main():
         FOV_calc.append(max(INFMS.beams(msinfo['DISH_DIAMETER'],min(freq_range),type='FoV')))
         FOV_calc.append(max(INFMS.beams(msinfo['DISH_DIAMETER'],max(freq_range),type='FoV')))
 
-
         # Determine angular resolution
         ang_res_calc = []
         ang_res_calc.append(min(INFMS.beams(bsl_length,max(freq_range),type='res')))
@@ -233,6 +232,8 @@ def main():
             print('Array type is: ',array_type)
             print('Can not determine image sensitivities please add telescope information')
             image_sens_jy = -1
+
+
 
         # Determine the array center and the antenna sorted by distance
         
@@ -410,21 +411,38 @@ def main():
             
 
             print('\t--------------')
+
+            planets = ['moon','sun','jupiter']
+
             for so in sinfo_keys:
-                scan_ids   = []
-                scan_times = []
+                caution_plant = []
+                scan_ids      = []
+                scan_times    = []
                 SCAN_INFO[so] = {}
                 for sp in range(len(msource_info[so]['SCANTIMES'])):
                     time_low_str = Time(int_time_so[so][sp][0]/(24. * 3600.),scale='utc',format='mjd').iso
                     time_high_str = Time(int_time_so[so][sp][1]/(24. * 3600.),scale='utc',format='mjd').iso
+
                     if doprtdatainfo:
                         print('\t',so,'| SCAN_ID ',msource_info[so]['SCAN_ID'][sp],' | ',time_low_str,'---',time_high_str)
+
+                    for plts in planets:
+                        factor = 1
+                        plts_separation = INFMS.source_plant_separation(msource_info[so]['RADEC'],plts,int_time_so[so][sp][0],antinfo_pos[3]) 
+                        if plts_separation < factor * max(FOV_calc):
+                            print('\t\t',plts,'\t in distance to pointing centre [deg]', np.round(plts_separation,3))
+                            caution_plant.append([plts,plts_separation])
+
                     scan_ids.append(int(msource_info[so]['SCAN_ID'][sp]))
                     scan_times.append([time_low_str,time_high_str])
+
+
                 if doprtdatainfo:
                     print('\t--------------')
+
                 SCAN_INFO[so].update({'SCN_IDS':scan_ids})
                 SCAN_INFO[so].update({'SCN_TIMES':scan_times})
+                SCAN_INFO[so].update({'SCN_PLANTES':caution_plant})
 
             if doprtdatainfo:
                 print('\n')

@@ -177,6 +177,26 @@ def ms_source_info(msdata):
     return sour_info
 
 
+def source_plant_separation(source,planet,time,obs_pos):
+    """
+    
+    time is plane CASA output
+    
+    """
+    from astropy.coordinates import get_body,EarthLocation,SkyCoord
+    import astropy.units as u
+
+
+    array_central_pos = EarthLocation(obs_pos[0]*u.m,obs_pos[1]*u.m,obs_pos[2]*u.m)
+    timestamp         = Time(time/(24. * 3600.),format='mjd')
+    planet_pos        = get_body(planet,timestamp,location=array_central_pos, ephemeris=None)
+    planet_sky_pos    = SkyCoord(ra=planet_pos.ra,dec=planet_pos.dec,frame='gcrs',location=array_central_pos,obstime=timestamp)
+    so_coord          = SkyCoord(source[0],source[1], unit='deg',frame='icrs')
+    separation        = so_coord.separation(planet_sky_pos).deg
+
+    return separation
+
+
 def source_separation(ms_info):
     """
     calculates the source separation (astropy great circle)
@@ -335,7 +355,7 @@ def order_antenna_wrst_A_center(msdata):
 
     sort_idx = np.argsort(dist)
 
-    return np.array(dist)[sort_idx], np.array(dist_a_idx)[sort_idx],np.array(ant_name)[sort_idx]
+    return np.array(dist)[sort_idx], np.array(dist_a_idx)[sort_idx],np.array(ant_name)[sort_idx],array_centre
 
 
 def ms_unique_antenna(msdata,tabs='FEED'):
