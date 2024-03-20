@@ -54,7 +54,7 @@ Lets assume your ragavi container sits in /SOFTWARE/CONTAINER and your
 MS file is in the current working directory
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=/work/1678454471_sdp_l0.ms.hann.spw.split
+$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/GET_MS_INFO.py --WORK_DIR=/work/ --MS_FILE=1678454471_sdp_l0.ms.hann.spw.split
 ```
 
 
