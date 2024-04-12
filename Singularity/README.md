@@ -12,6 +12,6 @@ on your machine first.
 Build the singularity image with (note you need fakeroot permission):
 
 ```
-$ singularity build --fakeroot WK.simg singularity.werkzeugkasten.recipe
+singularity build --fakeroot WK.simg singularity.werkzeugkasten.recipe
 ```
 
