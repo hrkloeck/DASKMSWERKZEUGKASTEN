@@ -30,7 +30,7 @@ git clone https://github.com/hrkloeck/DASKMSWERKZEUGKASTEN.git
 =============
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/GET_MS_INFO.py -h
+singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/GET_MS_INFO.py -h
 ```
 
 list of arguments
@@ -174,7 +174,7 @@ Obtain Spectra of your Observations
 =============
 
 ```
-$ singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PLOTTER.py -h
+singularity exec --bind ${PWD}:/work /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PLOTTER.py -h
 ```
 
 list of arguments
@@ -270,7 +270,7 @@ Flag a dataset
 =============
 
 ```
-$ singularity exec --bind "$PWD:/work" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/DASKMSWERKZEUGKASTEN/FLAG_IT.py --h
+singularity exec --bind "$PWD:/work" /PATH_TO_SINGULARITY_CONTAINER/ragavi_1.7.3.sif python3 /work/DASKMSWERKZEUGKASTEN/FLAG_IT.py --h
 ```
 
 list of arguments
@@ -301,7 +301,7 @@ To flag a dataset you need to follow the procedure desriped below
     base on all baselines (most flags but also the cleanest one)
 
 ```
-$ singularity exec --bind ${PWD}:/work
+singularity exec --bind ${PWD}:/work
 /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
 /work/DASKMSWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PLOTTER.py --MS_FILE=/work/YOURDATA.ms
 --WORK_DIR=/work/ --DOBSLWATERFALLSPEC --DO_SAVE_AVERAGE_DATA=AVERAGE_DATA
@@ -311,7 +311,7 @@ $ singularity exec --bind ${PWD}:/work
     --DOFLAGDATA --DO_SAVE_FLAG_MASK=
 
 ```
-$ singularity exec --bind ${PWD}:/work
+singularity exec --bind ${PWD}:/work
 /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3
 /work/DASKMSWERKZEUGKASTEN/DYNAMIC_SPECTRUM_PICKLE_PLTFLG.py --AVG_FILE=/work/PLT_J0408-6545_AVERAGE_DATA_pickle.py --DOFLAGDATA --DOBSLWATERFALLSPEC --DO_SAVE_FLAG_MASK=FLAG_DATA --WORK_DIR=/work/
 
@@ -323,7 +323,7 @@ flags use FLAG_IT.py --CASAFGSAVE
 4) use that output to load into FLAG_IT.py as --FGMASK_FILE=
 
 ```
-$ singularity exec --bind ${PWD}:/work
+singularity exec --bind ${PWD}:/work
 /PATH_TO_SINGULARITY_CONTAINER/WK.simg python3 /work/DASKMSWERKZEUGKASTEN/FLAG_IT.py --MS_FILE=/work/YOURDATA.ms --WORK_DIR=/work/ --FGMASK_FILE=/work/DYNFLAG_J0408-6545_FLAG_DATA_pickle.py
 
 ```
