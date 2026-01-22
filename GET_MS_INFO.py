@@ -61,7 +61,8 @@ def main():
     # set the parmaters
     #
     cwd             = opts.cwd
-    MSFN            = cwd + opts.msfile
+    #MSFN            = cwd + opts.msfile
+    MSFN            = opts.msfile
     getinfotabs     = opts.getinfotab
     doprtdatainfo   = opts.doprtdatainfo
     dodatainfoutput = opts.dodatainfoutput
