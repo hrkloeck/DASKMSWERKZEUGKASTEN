@@ -208,8 +208,8 @@ def main():
 
         # store casa log file to current directory 
         #
-        current_casa_log = RFIM.find_CASA_logfile(checkdir='HOME',homedir='')
-        shutil.move(current_casa_log,cwd) 
+        #current_casa_log = RFIM.find_CASA_logfile(checkdir='HOME',homedir='')
+        #shutil.move(current_casa_log,cwd) 
 
         print('\n\nApplied Spectrum channel flag using CASA flag with: ')
         print('\n\t swd=',fg_line)
